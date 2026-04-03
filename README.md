@@ -1,137 +1,122 @@
 # AndATRA
 
-AI-assisted municipal issue intake and urban analytics platform built for city operations teams.
+AndATRA is a municipal operations platform for collecting, enriching, and analyzing city issues.
 
-AndATRA combines three interfaces into one operational workflow:
+The repository combines three working parts:
 
-- a Telegram bot for citizen issue submission
-- a Flask backend for storage, orchestration, analytics, and AI processing
-- a React Native Web dashboard for operators, analysts, and decision-makers
+- `telegram/`: a citizen-facing Telegram bot for issue intake
+- `backend/`: a Flask API with persistence, analytics, realtime events, and AI orchestration
+- `frontend/`: an Expo Router + React Native Web dashboard for operators and analysts
 
-The project is designed as a practical MVP for a modern city service desk: citizens report problems through a familiar channel, the platform structures and enriches those reports, and city staff work with a live dashboard, district-level analytics, and an AI assistant.
+## What The Product Does
 
-## Why This Project Matters
+AndATRA is designed around one continuous workflow:
 
-Municipal issue handling often breaks down between intake, prioritization, and visibility. AndATRA was built to close that gap with:
+1. A resident submits an issue in Telegram.
+2. The backend validates and stores the appeal.
+3. AI-assisted enrichment classifies the case, sets priority, extracts tags, and builds a short summary.
+4. The dashboard shows the updated data through API requests and realtime Socket.IO events.
+5. Operators review appeals, trends, district signals, map data, and AI-generated recommendations.
 
-- low-friction citizen reporting through Telegram
-- centralized backend-driven data flow
-- AI-assisted classification
-- real-time updates for the operations dashboard
-- analytics views for trends, hotspots, and response patterns
+## Current Feature Set
 
-## Core Capabilities
+### Telegram bot
 
-- Multi-step Telegram intake flow with category selection, text, optional photo, and optional location
-- Backend API for appeals, categories, districts, analytics, and AI chat
-- Automatic background classification of new appeals after submission
-- Real-time event delivery with Socket.IO when new appeals are created
-- Operations dashboard with KPIs, recent appeals, category breakdown, and export actions
-- Appeals workspace with filtering, pagination, CSV export, and detailed drill-down
-- Analytics overview with computed narrative summaries, heatmap insights, and category trends
-- Map view for district-level issue concentration
-- AI chat interface for querying the operational dataset in natural language
-- Mock LLM mode for development without Ollama or GPU access
-- Dual-node Ollama support for LAN-based model routing
-
-## Product Walkthrough
-
-```mermaid
-flowchart LR
-    A[Citizen] --> B[Telegram Bot]
-    B --> C[Flask Backend]
-    C --> D[(SQLite)]
-    C --> E[Background AI Classification]
-    E --> F[Ollama Primary]
-    E --> G[Ollama Classify]
-    C --> H[Socket.IO Events]
-    C --> I[Web Dashboard]
-    D --> I
-    H --> I
-```
-
-### End-to-end flow
-
-1. A citizen submits an issue through the Telegram bot.
-2. The backend stores the appeal and immediately emits a real-time event.
-3. A background worker classifies the appeal, assigns priority, extracts tags, and builds a short case summary.
-4. The dashboard updates through API reads plus websocket events.
-5. City staff review KPIs, appeal details, district hotspots, and computed analytics insights.
-
-## Architecture
-
-### Frontend
-
-- Expo Router + React Native Web
-- TanStack Query for server state
-- Zustand for local UI/chat state
-- Leaflet for district-level mapping
-- Socket.IO client for real-time updates
+- Multi-step intake flow
+- Category selection from backend reference data
+- Free-text problem description
+- Optional photo upload
+- Optional geolocation or manual address
+- Final confirmation before submission
+- Shared-secret authentication against the backend API
 
 ### Backend
 
 - Flask application factory
-- Flask-SocketIO for live updates
-- SQLAlchemy + SQLite for persistence
-- Alembic for schema migrations
-- Service-layer architecture for appeals, analytics, chat, and LLM routing
+- SQLite + SQLAlchemy models
+- Alembic migrations
+- Appeal intake and appeal listing/detail endpoints
+- Categories and districts reference endpoints
+- Analytics endpoints for dashboard, summary, trends, category breakdown, and heatmap
+- AI chat endpoint for operators
+- Traffic AI endpoints for congestion analysis and traffic chat
+- Socket.IO namespace for dashboard updates
+- Mock LLM mode for local development
+- Ollama routing for primary, classify, and vision tasks
 
-### Telegram bot
+### Frontend
 
-- `python-telegram-bot`
-- thin data-collection layer with minimal business logic
-- authenticated communication with backend via shared secret
-
-### AI layer
-
-- Ollama-based model routing
-- separate roles for primary chat and classification
-- graceful fallback from classification to the primary node
-- mock mode for local development and demos
+- Dashboard with KPI cards, alerts, recent appeals, and category breakdown
+- Appeals workspace with filters and detail pages
+- Analytics overview and trends pages
+- City map screen
+- Air quality monitoring page
+- Traffic AI page with recommendations and chat
+- Categories catalog page
+- AI chat page
+- Reports/export page
+- Profile/settings page
+- TXT/PDF export actions in key screens
 
 ## Tech Stack
 
 | Layer | Stack |
 | --- | --- |
-| Frontend | React Native Web, Expo Router, TypeScript, NativeWind, TanStack Query, Zustand, Leaflet |
-| Backend | Python, Flask, Flask-SocketIO, SQLAlchemy, Alembic |
+| Frontend | Expo Router, React Native Web, TypeScript, NativeWind, TanStack Query, Zustand, Leaflet |
+| Backend | Flask, Flask-SocketIO, Flask-SQLAlchemy, SQLAlchemy, Alembic |
 | Bot | python-telegram-bot, aiohttp |
 | Data | SQLite |
-| AI | Ollama, LAN-ready dual-node model routing |
-| Testing | pytest, pytest-asyncio |
+| AI | Ollama-compatible local/LAN nodes, mock mode |
+| Testing | pytest, pytest-flask, pytest-asyncio |
 
 ## Repository Structure
 
 ```text
 AndATRA/
-|-- backend/      Flask API, business logic, data models, analytics, AI services
-|-- frontend/     Expo Router dashboard for operations teams
-|-- telegram/     Telegram bot for citizen submissions
-|-- LOCAL_NETWORK_DEPLOYMENT.md
+|-- backend/
+|   |-- app/
+|   |   |-- api/
+|   |   |-- data/
+|   |   |-- models/
+|   |   |-- services/
+|   |   `-- utils/
+|   |-- migrations/
+|   |-- scripts/
+|   |-- tests/
+|   `-- run.py
+|-- frontend/
+|   |-- app/
+|   |-- components/
+|   |-- hooks/
+|   |-- services/
+|   |-- stores/
+|   |-- theme/
+|   |-- types/
+|   `-- utils/
+|-- telegram/
+|   |-- bot/
+|   |   |-- handlers/
+|   |   |-- keyboards/
+|   |   `-- services/
+|   `-- tests/
+|-- PROJECT_DESCRIPTION.txt
+|-- RUN_GUIDE.md
+|-- some_instructions.md
 `-- README.md
 ```
 
-Additional component-level docs:
+## Fast Local Demo
 
-- [RUN_GUIDE.md](RUN_GUIDE.md)
-- [PROJECT_WALKTHROUGH.md](PROJECT_WALKTHROUGH.md)
-- [backend/README.md](backend/README.md)
-- [frontend/README.md](frontend/README.md)
-- [telegram/README.md](telegram/README.md)
-- [LOCAL_NETWORK_DEPLOYMENT.md](LOCAL_NETWORK_DEPLOYMENT.md)
+If you want the fastest working demo:
 
-## Fastest Demo Path
+- run the backend with `LLM_MOCK_MODE=true`
+- seed the local database
+- open the frontend in web mode
+- treat the Telegram bot as optional
 
-If you want the best portfolio demo experience with the least setup friction, start with:
+This gives you a complete dashboard experience without external AI infrastructure.
 
-- backend in mock LLM mode
-- seeded local database
-- frontend on web
-- Telegram bot optional
-
-This gives you a fully navigable dashboard without requiring external AI infrastructure.
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
@@ -142,8 +127,6 @@ This gives you a fully navigable dashboard without requiring external AI infrast
 - Optional: Telegram bot token from `@BotFather`
 
 ### 1. Install dependencies
-
-Commands below use PowerShell.
 
 ```powershell
 python -m pip install -r backend\requirements.txt -r telegram\requirements.txt
@@ -158,36 +141,52 @@ Copy-Item telegram\.env.example telegram\.env
 Copy-Item frontend\.env.example frontend\.env
 ```
 
-### 3. Recommended local development config
+### 3. Recommended local configuration
 
-For `backend/.env`, use mock mode if you do not want to configure Ollama yet:
+`backend/.env`
 
 ```env
-LLM_MOCK_MODE=true
+FLASK_SECRET_KEY=change_this_secret
+DATABASE_URL=sqlite:///andatra.db
 APP_HOST=0.0.0.0
 APP_PORT=5000
-DATABASE_URL=sqlite:///andatra.db
+FLASK_DEBUG=false
+AUTO_SEED_REFERENCE_DATA=true
+CORS_ORIGINS=http://localhost:3000,http://localhost:8081,http://localhost:19006
+SOCKETIO_ASYNC_MODE=threading
+
+LLM_PRIMARY_URL=http://localhost:11434
+LLM_CLASSIFY_URL=http://localhost:11434
+LLM_VISION_URL=http://localhost:11434
+LLM_PRIMARY_MODEL=llama3
+LLM_CLASSIFY_MODEL=mistral
+LLM_VISION_MODEL=llava
+LLM_VISION_ENABLED=true
+LLM_MOCK_MODE=true
+
+GEOCODING_ENABLED=true
 TELEGRAM_BOT_SECRET=shared_secret_token_here
 ```
 
-For `telegram/.env`:
+`telegram/.env`
 
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 BACKEND_URL=http://localhost:5000
+BACKEND_TIMEOUT_SECONDS=45
 BOT_SECRET=shared_secret_token_here
 ```
 
-For `frontend/.env`:
+`frontend/.env`
 
 ```env
 EXPO_PUBLIC_BACKEND_URL=http://localhost:5000
 EXPO_PUBLIC_APP_NAME=AndATRA
+EXPO_PUBLIC_TOMTOM_API_KEY=your_tomtom_api_key
+EXPO_PUBLIC_AIR_QUALITY_API_URL=https://air-quality-api.open-meteo.com/v1/air-quality
 ```
 
 ### 4. Initialize the database
-
-From the backend directory:
 
 ```powershell
 cd backend
@@ -197,8 +196,9 @@ python -m app.data.seed
 
 Notes:
 
-- the backend also creates tables automatically at startup for developer convenience
-- the seed script is idempotent, so it is safe to rerun
+- the backend also creates tables automatically at startup
+- `AUTO_SEED_REFERENCE_DATA=true` fills required reference dictionaries
+- `python -m app.data.seed` is useful when you want demo appeals in the database
 
 ### 5. Start the backend
 
@@ -227,44 +227,42 @@ cd telegram
 python -m bot.main
 ```
 
-## Key API Surface
+## API Overview
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/health` | Service health check |
-| `POST` | `/api/appeals/intake` | Receive a new appeal from Telegram |
-| `GET` | `/api/appeals` | List and filter appeals |
+| `GET` | `/api/health` | Health check |
+| `POST` | `/api/appeals/intake` | Intake from Telegram |
+| `GET` | `/api/appeals` | Appeal list with filters and pagination |
 | `GET` | `/api/appeals/<id>` | Appeal detail |
-| `GET` | `/api/categories` | Appeal category tree |
+| `GET` | `/api/categories` | Categories reference data |
 | `GET` | `/api/districts` | District reference data |
-| `GET` | `/api/analytics/dashboard` | KPI counters for the main dashboard |
-| `GET` | `/api/analytics/summary` | Aggregated summary and computed narrative insights |
-| `GET` | `/api/analytics/trends` | Time-series metrics |
+| `GET` | `/api/analytics/dashboard` | Dashboard counters |
+| `GET` | `/api/analytics/summary` | Narrative summary and highlights |
+| `GET` | `/api/analytics/trends` | Time-series analytics |
 | `GET` | `/api/analytics/categories` | Category breakdown |
-| `GET` | `/api/analytics/heatmap` | District heatmap data |
-| `POST` | `/api/chat` | AI assistant chat endpoint |
+| `GET` | `/api/analytics/heatmap` | District heatmap |
+| `POST` | `/api/chat` | Operator AI chat |
+| `GET` | `/api/traffic/analyze` | Traffic recommendations |
+| `POST` | `/api/traffic/chat` | Traffic-specific AI chat |
 
-## AI Modes
+## AI Runtime Modes
 
 ### Mock mode
 
-Use this for development, demos, and portfolio screenshots:
+Use mock mode when you want predictable local behavior and no dependency on Ollama:
 
-- no Ollama setup required
-- predictable responses
-- quickest way to launch the full stack locally
+- `LLM_MOCK_MODE=true`
+- canned responses for primary chat, intake analysis, classification, and vision analysis
+- best option for UI work, demos, and smoke testing
 
-### Real LAN-based Ollama mode
+### Ollama mode
 
-Use this when you want the full AI architecture:
+Use live model calls when you want actual AI behavior:
 
-- primary model for general chat
-- classification model for intake enrichment
-- fallback to primary node if the classification node is unavailable
-
-Detailed setup guide:
-
-- [LOCAL_NETWORK_DEPLOYMENT.md](LOCAL_NETWORK_DEPLOYMENT.md)
+- set `LLM_MOCK_MODE=false`
+- configure `LLM_PRIMARY_*`, `LLM_CLASSIFY_*`, and `LLM_VISION_*`
+- classification falls back to the primary node if needed
 
 ## Testing
 
@@ -275,7 +273,7 @@ cd backend
 python -m pytest
 ```
 
-### Frontend type check
+### Frontend
 
 ```powershell
 cd frontend
@@ -289,46 +287,21 @@ cd telegram
 python -m pytest
 ```
 
-## Portfolio Highlights
+## Notes
 
-This project is especially strong as a portfolio piece because it demonstrates:
+- The current seeded content and UI copy are focused on Almaty.
+- Parts of the interface are in Russian.
+- SQLite is used for the MVP and local development.
+- Telegram polling supports one active process per token.
+- Air quality data comes from Open-Meteo.
+- Traffic overlays and traffic analysis depend on TomTom-based frontend configuration and backend traffic services.
 
-- full-stack system thinking across frontend, backend, bot integration, database, and AI services
-- real product framing instead of a disconnected CRUD demo
-- asynchronous background processing after intake
-- real-time synchronization between backend and dashboard
-- modular architecture with clear separation of concerns
-- practical AI integration with graceful degradation and mock-friendly development
-- deployment thinking beyond localhost through local network model orchestration
+## Roadmap Ideas
 
-## Current Notes
+- PostgreSQL instead of SQLite
+- background job queue for classification and notifications
+- authentication and role-based access control
+- richer audit logs and observability
+- multilingual support
+- media storage abstraction for uploaded photos
 
-- The current UI copy and seeded domain data are focused on Almaty.
-- Parts of the interface and seeded content are currently in Russian.
-- SQLite is used for the MVP and local development; PostgreSQL would be a natural production upgrade.
-- The dashboard is optimized for operational review and internal usage rather than public self-service.
-- Telegram polling supports only one active bot process per token at a time.
-
-## Suggested Demo Story
-
-For a portfolio presentation, the strongest demo sequence is:
-
-1. Open the dashboard and show the KPI cards, recent appeals, and category breakdown.
-2. Move into the appeals workspace and filter issues by priority or category.
-3. Open analytics to show trends, computed narrative insights, and district heatmap signals.
-4. Show the map view for spatial clustering.
-5. Submit a new issue through Telegram and demonstrate the backend-to-dashboard flow.
-6. Ask the AI assistant a question about critical cases or district performance.
-
-## Future Improvements
-
-- Replace SQLite with PostgreSQL and background jobs with a dedicated task queue
-- Add authentication and role-based access control for dashboard users
-- Introduce richer observability, tracing, and audit logs
-- Support multilingual UI and citizen-facing localization
-- Add media storage abstraction for uploaded photos
-- Expand analytics toward SLA tracking and resolution workflows
-
-## License
-
-This repository is currently presented as a portfolio project. Add a dedicated license if you plan to distribute or open-source it publicly.

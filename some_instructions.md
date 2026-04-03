@@ -1,105 +1,180 @@
 # AndATRA Setup Notes
 
-Актуальная схема проекта:
+Актуальные рабочие части проекта:
 
 - `backend` на Flask + SQLite + Socket.IO
-- `telegram` бот для приема обращений
+- `telegram` как канал приема обращений
 - `frontend` на Expo Router / React Native Web
-- интеграция с `Ollama`
-- 2 LLM-роли:
-  - `primary` для AI-чата
-  - `classify` для обработки обращений граждан
+- AI-слой с режимами mock и Ollama
 
-Важно:
+## Что важно знать про текущую версию
 
-- отдельной `summary`-ноды в проекте больше нет
-- аналитика строится самим backend на основе данных БД
-- narrative и highlights в аналитике вычисляются без третьей модели
+- проект больше не опирается на отдельную `summary`-ноду
+- основная аналитика считается backend-сервисами на Python и SQLAlchemy
+- актуальные LLM-роли сейчас: `primary`, `classify`, `vision`
+- для локальной разработки удобнее всего запускать проект с `LLM_MOCK_MODE=true`
+- `python -m app.data.seed` полезен для демо, потому что добавляет тестовые обращения
+- `AUTO_SEED_REFERENCE_DATA=true` автоматически поднимает категории и районы
 
 ## Быстрый локальный запуск
 
-### `backend/.env`
+### 1. Установить зависимости
+
+```powershell
+python -m pip install -r backend\requirements.txt -r telegram\requirements.txt
+npm --prefix frontend install
+```
+
+### 2. Создать `.env` файлы
+
+```powershell
+Copy-Item backend\.env.example backend\.env
+Copy-Item telegram\.env.example telegram\.env
+Copy-Item frontend\.env.example frontend\.env
+```
+
+### 3. Рекомендуемый `backend/.env` для разработки
 
 ```env
-FLASK_ENV=development
 FLASK_SECRET_KEY=change_this_secret
 DATABASE_URL=sqlite:///andatra.db
 APP_HOST=0.0.0.0
 APP_PORT=5000
 FLASK_DEBUG=false
 AUTO_SEED_REFERENCE_DATA=true
-CORS_ORIGINS=http://localhost:8081,http://127.0.0.1:8081,http://localhost:19006,http://127.0.0.1:19006
+CORS_ORIGINS=http://localhost:3000,http://localhost:8081,http://localhost:19006
 SOCKETIO_ASYNC_MODE=threading
 
 LLM_PRIMARY_URL=http://localhost:11434
 LLM_CLASSIFY_URL=http://localhost:11434
+LLM_VISION_URL=http://localhost:11434
 LLM_PRIMARY_MODEL=llama3
 LLM_CLASSIFY_MODEL=mistral
-
+LLM_VISION_MODEL=llava
+LLM_VISION_ENABLED=true
 LLM_MOCK_MODE=true
+
+GEOCODING_ENABLED=true
+GEOCODING_REVERSE_URL=https://nominatim.openstreetmap.org/reverse
+GEOCODING_USER_AGENT=AndATRA/1.0
+GEOCODING_TIMEOUT=6
+
 TELEGRAM_BOT_SECRET=shared_secret_token_here
 ```
 
-### Команды
+### 4. Рекомендуемый `telegram/.env`
+
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+BACKEND_URL=http://localhost:5000
+BACKEND_TIMEOUT_SECONDS=45
+BOT_SECRET=shared_secret_token_here
+```
+
+### 5. Рекомендуемый `frontend/.env`
+
+```env
+EXPO_PUBLIC_BACKEND_URL=http://localhost:5000
+EXPO_PUBLIC_APP_NAME=AndATRA
+EXPO_PUBLIC_TOMTOM_API_KEY=your_tomtom_api_key
+EXPO_PUBLIC_AIR_QUALITY_API_URL=https://air-quality-api.open-meteo.com/v1/air-quality
+```
+
+### 6. Поднять базу и демо-данные
 
 ```powershell
-cd C:\Users\Lev\Desktop\AndANTRA
-python -m pip install -r backend\requirements.txt -r telegram\requirements.txt
-cd frontend
-npm install
-cd ..\backend
+cd backend
+alembic upgrade head
 python -m app.data.seed
+```
+
+### 7. Запустить сервисы
+
+Backend:
+
+```powershell
+cd backend
 python run.py
 ```
 
-Во втором терминале:
+Frontend:
 
 ```powershell
-cd C:\Users\Lev\Desktop\AndANTRA\telegram
+cd frontend
+npm run web
+```
+
+Telegram bot:
+
+```powershell
+cd telegram
 python -m bot.main
 ```
 
-В третьем терминале:
+## Что именно делает AI в проекте
+
+1. Новое обращение приходит в backend.
+2. Intake-анализ проверяет, похоже ли сообщение на реальную городскую проблему.
+3. Классификация определяет категорию, приоритет, теги и summary.
+4. Если пользователь приложил фото, vision-анализ помогает подтвердить релевантность и содержание.
+5. Операторский AI-чат отвечает на вопросы по данным системы.
+6. Traffic AI строит рекомендации по дорожной ситуации и фазам светофоров.
+
+## Актуальные экраны frontend
+
+- `/` - dashboard
+- `/appeals` и `/appeals/[id]` - реестр и карточка обращения
+- `/analytics` и `/analytics/trends` - аналитика
+- `/map` - карта города
+- `/air-quality` - карта качества воздуха
+- `/traffic-ai` - traffic AI и traffic chat
+- `/categories` - каталог категорий
+- `/chat` - AI-ассистент
+- `/reports` - экспортные отчеты
+- `/profile` - профиль и системные действия
+
+## Полезные команды
+
+Проверка backend:
 
 ```powershell
-cd C:\Users\Lev\Desktop\AndANTRA\frontend
-npm start
+cd backend
+python -m pytest
 ```
 
-## LAN-режим с реальными LLM
-
-Используй 2 ноды:
-
-- `PC-1`: `primary` (`llama3`)
-- `PC-2`: `classify` (`mistral`)
-
-Пример backend-конфига:
-
-```env
-LLM_PRIMARY_URL=http://192.168.0.10:11434
-LLM_CLASSIFY_URL=http://192.168.0.11:11434
-LLM_PRIMARY_MODEL=llama3
-LLM_CLASSIFY_MODEL=mistral
-LLM_MOCK_MODE=false
-```
-
-Проверка доступности нод:
+Проверка telegram:
 
 ```powershell
-cd C:\Users\Lev\Desktop\AndANTRA\backend
+cd telegram
+python -m pytest
+```
+
+Проверка frontend:
+
+```powershell
+cd frontend
+npm run typecheck
+```
+
+Проверка доступности Ollama-нод:
+
+```powershell
+cd backend
 python scripts\check_llm_nodes.py
 ```
 
-## Что делает AI
+## Замечания по конфигу
 
-1. Новое обращение приходит в backend.
-2. Фоновый worker вызывает `classify`-модель.
-3. Модель возвращает категорию, приоритет, теги, район и короткий summary кейса.
-4. AI-чат сотрудников работает через `primary`-модель.
-5. Аналитика сайта считается обычным Python-кодом и SQLAlchemy-запросами без отдельной summary-модели.
+- если нужен стабильный локальный запуск, оставляй `LLM_MOCK_MODE=true`
+- если включаешь живые модели, проверь `LLM_PRIMARY_*`, `LLM_CLASSIFY_*` и `LLM_VISION_*`
+- `LLM_SUMMARY_*` для текущей версии не нужны
+- air quality страница может работать без API key
+- traffic-функции лучше работают, когда задан `EXPO_PUBLIC_TOMTOM_API_KEY`
+- Telegram polling предполагает один активный процесс бота на токен
 
 ## Актуальные документы
 
-- основной обзор: `README.md`
-- backend: `backend/README.md`
-- LAN deployment: `LOCAL_NETWORK_DEPLOYMENT.md`
+- основной обзор репозитория: `README.md`
+- краткое описание проекта: `PROJECT_DESCRIPTION.txt`
+- сценарии запуска: `RUN_GUIDE.md`
+- эти заметки: `some_instructions.md`
