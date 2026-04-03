@@ -1,4 +1,5 @@
 import { api, unwrapApiResponse } from "@/services/api";
+import { normalizeBrokenText } from "@/utils/text";
 import type { Appeal, AppealFilters, AppealsResponse, Category, District } from "@/types/appeal";
 
 interface BackendCategory {
@@ -59,10 +60,10 @@ const mapCategory = (category?: BackendCategory | null): Category | null =>
   category
     ? {
         id: category.id,
-        name: category.name,
+        name: normalizeBrokenText(category.name),
         slug: category.slug,
         icon: category.icon,
-        description: category.description,
+        description: normalizeBrokenText(category.description),
         children: category.children?.map(mapCategory).filter(Boolean) as Category[] | undefined
       }
     : null;
@@ -71,15 +72,15 @@ const mapDistrict = (district?: BackendDistrict | null): District | null =>
   district
     ? {
         id: district.id,
-        name: district.name,
+        name: normalizeBrokenText(district.name),
         slug: district.slug,
-        city: district.city,
+        city: normalizeBrokenText(district.city),
         coordinatesCenter: district.coordinates_center
       }
     : null;
 
 const mapAppeal = (appeal: BackendAppeal): Appeal => {
-  const text = appeal.text?.trim() ?? "";
+  const text = normalizeBrokenText(appeal.text?.trim() ?? "");
   const category = mapCategory(appeal.category);
   const district = mapDistrict(appeal.district);
 
@@ -90,7 +91,7 @@ const mapAppeal = (appeal: BackendAppeal): Appeal => {
     preview: toSentenceCasePreview(text, 140),
     district,
     districtName: district?.name ?? "Без района",
-    locationText: appeal.location_text,
+    locationText: normalizeBrokenText(appeal.location_text),
     category,
     categoryName: category?.name ?? "Без категории",
     categorySlug: category?.slug,
@@ -98,8 +99,8 @@ const mapAppeal = (appeal: BackendAppeal): Appeal => {
     status: appeal.status,
     createdAt: appeal.created_at,
     updatedAt: appeal.updated_at,
-    aiSummary: appeal.ai_summary,
-    aiTags: appeal.ai_tags ?? [],
+    aiSummary: normalizeBrokenText(appeal.ai_summary),
+    aiTags: (appeal.ai_tags ?? []).map(normalizeBrokenText),
     photoUrl: appeal.photo_url,
     latitude: appeal.latitude,
     longitude: appeal.longitude

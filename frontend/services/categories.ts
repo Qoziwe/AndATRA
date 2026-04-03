@@ -1,4 +1,5 @@
 import { api, unwrapApiResponse } from "@/services/api";
+import { normalizeBrokenText } from "@/utils/text";
 import type { Category } from "@/types/appeal";
 
 interface BackendCategory {
@@ -14,10 +15,10 @@ interface BackendCategory {
 
 const mapCategory = (category: BackendCategory): Category => ({
   id: category.id,
-  name: category.name,
+  name: normalizeBrokenText(category.name),
   slug: category.slug,
   icon: category.icon,
-  description: category.description,
+  description: normalizeBrokenText(category.description),
   appealCount: category.appeal_count ?? 0,
   trend: category.trend ?? 0,
   children: category.children?.map(mapCategory)

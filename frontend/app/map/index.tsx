@@ -10,11 +10,7 @@ import { CityMap, type MapLayerMode } from "@/components/map/CityMap";
 import { TOMTOM_TRAFFIC_API_KEY } from "@/constants/config";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useHeatmap } from "@/hooks/useAnalytics";
-import {
-  downloadPdfDocument,
-  downloadTextFile,
-  requestElementFullscreen
-} from "@/services/clientActions";
+import { requestElementFullscreen } from "@/services/clientActions";
 import { useFeedbackStore } from "@/stores/feedbackStore";
 
 const layerOptions: Array<{
@@ -70,10 +66,6 @@ export default function MapPage() {
         ? "Обращения и пробки"
         : "Обращения";
 
-  const snapshot = query.data
-    .map((item) => `${item.district}: ${item.count} обращений, тренд ${item.trend}%`)
-    .join("\n");
-
   const handleFullscreen = () => {
     const success = requestElementFullscreen("city-map");
     pushToast({
@@ -92,39 +84,12 @@ export default function MapPage() {
     });
   };
 
-  const handleExportTxt = () => {
-    const exported = downloadTextFile("city-map-snapshot.txt", snapshot);
-    pushToast({
-      title: exported ? "TXT сохранен" : "Экспорт недоступен",
-      description: exported
-        ? "Карта сохранена как текстовая сводка по районам."
-        : "Откройте web-версию для скачивания файла."
-    });
-  };
-
-  const handleExportPdf = () => {
-    const exported = downloadPdfDocument("Карта города", [
-      {
-        heading: "Сводка по районам",
-        body: snapshot
-      }
-    ]);
-    pushToast({
-      title: exported ? "PDF подготовлен" : "Экспорт недоступен",
-      description: exported
-        ? "Открыто окно печати: сохраните карту как PDF."
-        : "PDF-экспорт работает в web-версии."
-    });
-  };
-
   return (
     <View>
       <PageHeader
         title="Карта города"
-        subtitle="Пространственный обзор по обращениям и активным районам с дополнительным слоем пробок TomTom"
+        subtitle="Пространственный обзор по обращениям и активным районам"
         actions={[
-          { label: "TXT", onPress: handleExportTxt },
-          { label: "PDF", onPress: handleExportPdf },
           { label: "Полный экран", onPress: handleFullscreen },
           { label: "Обновить", onPress: handleRefresh, primary: true }
         ]}
@@ -164,7 +129,8 @@ export default function MapPage() {
           </View>
 
           <Text className="text-sm leading-6" style={{ color: colors.muted }}>
-            Активный режим: {activeLayerLabel}. Радиус маркера зависит от количества обращений, цвет показывает интенсивность.
+            Активный режим: {activeLayerLabel}. Радиус маркера зависит от количества обращений, цвет показывает
+            интенсивность.
           </Text>
 
           {!trafficEnabled ? (

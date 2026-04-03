@@ -17,16 +17,17 @@ export const CategoryBreakdown = ({
 
   return (
     <View
-      className="rounded-[30px] border p-5"
+      className="rounded-[28px] border p-5"
       style={{ backgroundColor: colors.surface, borderColor: colors.border }}
     >
-      <Text className="text-xl font-semibold" style={{ color: colors.text }}>
+      <Text className="text-lg font-semibold" style={{ color: colors.text }}>
         {title}
       </Text>
       <Text className="mt-2 text-sm" style={{ color: colors.muted }}>
-        Данные из backend за выбранный период
+        Данные за выбранный период
       </Text>
-      <View className="mt-6 gap-4">
+
+      <View className="mt-5 gap-4">
         {data.map((item) => (
           <View key={item.slug}>
             <View className="mb-2 flex-row items-center justify-between gap-3">
@@ -51,8 +52,9 @@ export const CategoryBreakdown = ({
                 ) : null}
               </View>
             </View>
+
             <View
-              className="h-3 overflow-hidden rounded-full"
+              className="h-2 overflow-hidden rounded-full"
               style={{ backgroundColor: colors.surfaceAlt }}
             >
               <View

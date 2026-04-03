@@ -1,5 +1,6 @@
 import { CATEGORY_COLORS } from "@/constants/config";
 import { api, unwrapApiResponse } from "@/services/api";
+import { normalizeBrokenText } from "@/utils/text";
 import type {
   AnalyticsSummary,
   CategoryMetric,
@@ -65,14 +66,28 @@ interface BackendHeatmapPoint {
 const getCategoryColor = (slug: string) =>
   CATEGORY_COLORS[slug as keyof typeof CATEGORY_COLORS] ?? CATEGORY_COLORS.default;
 
+const CATEGORY_LABELS: Partial<Record<BackendCategoryMetric["slug"], string>> = {
+  transport: "Транспорт",
+  ecology: "Экология",
+  safety: "Безопасность",
+  aryk_monitoring: "Арыки и ливневки",
+  social: "Социальная сфера",
+  healthcare: "Здравоохранение",
+  infrastructure: "Инфраструктура",
+  utilities: "Коммунальные услуги"
+};
+
+const resolveCategoryLabel = (metric: BackendCategoryMetric) =>
+  CATEGORY_LABELS[metric.slug] ?? normalizeBrokenText(metric.label);
+
 const mapCategoryMetric = (metric: BackendCategoryMetric): CategoryMetric => ({
   slug: metric.slug,
-  label: metric.label,
+  label: resolveCategoryLabel(metric),
   value: metric.value,
   color: getCategoryColor(metric.slug),
   trend: metric.trend,
   icon: metric.icon,
-  description: metric.description
+  description: normalizeBrokenText(metric.description)
 });
 
 const mapDashboardStats = (stats: BackendDashboardStats): DashboardStats => ({
@@ -105,8 +120,8 @@ export const getSummary = async (
     byDistrict: data.by_district,
     byPriority: data.by_priority,
     byStatus: data.by_status,
-    narrative: data.narrative,
-    highlights: data.highlights,
+    narrative: data.narrative.map(normalizeBrokenText),
+    highlights: data.highlights.map(normalizeBrokenText),
     metrics: {
       ...mapDashboardStats(data.metrics),
       resolutionRate: data.metrics.resolution_rate,
@@ -134,13 +149,13 @@ export const getTrends = async (
 export const getHeatmap = async (): Promise<DistrictHeatmap[]> => {
   const response = await api.get("/api/analytics/heatmap");
   return unwrapApiResponse<BackendHeatmapPoint[]>(response).map((item) => ({
-    district: item.district.name,
+    district: normalizeBrokenText(item.district.name),
     districtSlug: item.district.slug,
     count: item.appeal_count,
     trend: item.trend,
     latitude: item.district.coordinates_center?.lat ?? 43.2389,
     longitude: item.district.coordinates_center?.lng ?? 76.8897,
-    insight: item.insight
+    insight: normalizeBrokenText(item.insight)
   }));
 };
 

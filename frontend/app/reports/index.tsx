@@ -8,10 +8,7 @@ import { AppIcon } from "@/components/icons/AppIcon";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useAppeals } from "@/hooks/useAppeals";
 import { useDashboardStats, useHeatmap, useSummary } from "@/hooks/useAnalytics";
-import {
-  downloadPdfDocument,
-  downloadTextFile
-} from "@/services/clientActions";
+import { downloadPdfDocument, downloadTextFile } from "@/services/clientActions";
 import { useFeedbackStore } from "@/stores/feedbackStore";
 
 const reportCards = [
@@ -102,27 +99,22 @@ export default function ReportsPage() {
     <View>
       <PageHeader
         title="Отчеты"
-        subtitle="Готовые шаблоны управленческих отчетов, экспорт и быстрый переход к источникам данных"
-        actions={[
-          { label: "TXT сводка", onPress: () => exportTxt("executive-summary.txt", executiveText) },
-          { label: "PDF сводка", onPress: () => exportPdf("Исполнительная сводка", executiveText) },
-          { label: "К аналитике", onPress: () => router.push("/analytics"), primary: true }
-        ]}
+        subtitle="Готовые шаблоны управленческих отчетов и быстрый доступ к выгрузкам"
       />
 
       <FadeInView delay={50}>
         <View
-          className="rounded-[34px] border p-6"
+          className="rounded-[30px] border p-6"
           style={{ backgroundColor: colors.surface, borderColor: colors.border }}
         >
           <View className="flex-row flex-wrap items-start justify-between gap-5">
             <View className="max-w-3xl">
-              <Text className="text-3xl font-bold" style={{ color: colors.text }}>
+              <Text className="text-2xl font-bold" style={{ color: colors.text }}>
                 Центр подготовки отчетов
               </Text>
-              <Text className="mt-3 text-base leading-7" style={{ color: colors.textSecondary }}>
-                Раздел больше не является заглушкой: здесь можно собрать управленческую сводку,
-                районный срез и эскалационный отчет на основе текущих данных системы.
+              <Text className="mt-3 text-sm leading-7" style={{ color: colors.textSecondary }}>
+                Здесь можно собрать управленческую сводку, районный срез и эскалационный отчет на основе
+                текущих данных системы.
               </Text>
             </View>
             <Pressable
@@ -148,7 +140,7 @@ export default function ReportsPage() {
           return (
             <FadeInView key={card.key} delay={90 + index * 45} style={{ minWidth: 300, flex: 1 }}>
               <View
-                className="min-w-[300px] flex-1 rounded-[30px] border p-5"
+                className="min-w-[300px] flex-1 rounded-[28px] border p-5"
                 style={{ backgroundColor: colors.surface, borderColor: colors.border }}
               >
                 <View className="flex-row items-center justify-between">
@@ -165,7 +157,8 @@ export default function ReportsPage() {
                     Готово к выгрузке
                   </Text>
                 </View>
-                <Text className="mt-4 text-xl font-semibold" style={{ color: colors.text }}>
+
+                <Text className="mt-4 text-lg font-semibold" style={{ color: colors.text }}>
                   {card.title}
                 </Text>
                 <Text className="mt-2 text-sm leading-6" style={{ color: colors.muted }}>
@@ -174,6 +167,7 @@ export default function ReportsPage() {
                 <Text className="mt-4 text-sm leading-6" style={{ color: colors.textSecondary }}>
                   {content || "Пока нет данных для формирования этого отчета."}
                 </Text>
+
                 <View className="mt-5 flex-row flex-wrap gap-3">
                   <Pressable
                     onPress={() => exportTxt(`${card.key}.txt`, content)}
@@ -201,10 +195,10 @@ export default function ReportsPage() {
       <View className="mt-6 flex-row flex-wrap gap-6">
         <FadeInView delay={240} style={{ minWidth: 320, flex: 1 }}>
           <View
-            className="rounded-[30px] border p-5"
+            className="rounded-[28px] border p-5"
             style={{ backgroundColor: colors.surface, borderColor: colors.border }}
           >
-            <Text className="text-xl font-semibold" style={{ color: colors.text }}>
+            <Text className="text-lg font-semibold" style={{ color: colors.text }}>
               Что войдет в сводку
             </Text>
             <Text className="mt-3 text-sm leading-7" style={{ color: colors.textSecondary }}>
@@ -214,10 +208,10 @@ export default function ReportsPage() {
         </FadeInView>
         <FadeInView delay={280} style={{ minWidth: 320, flex: 1 }}>
           <View
-            className="rounded-[30px] border p-5"
+            className="rounded-[28px] border p-5"
             style={{ backgroundColor: colors.surface, borderColor: colors.border }}
           >
-            <Text className="text-xl font-semibold" style={{ color: colors.text }}>
+            <Text className="text-lg font-semibold" style={{ color: colors.text }}>
               Критические обращения
             </Text>
             <Text className="mt-3 text-sm leading-7" style={{ color: colors.textSecondary }}>
@@ -230,4 +224,4 @@ export default function ReportsPage() {
       </View>
     </View>
   );
-};
+}

@@ -16,18 +16,24 @@ export const StatCard = ({ label, value, accent, delta, icon, compact }: StatCar
 
   return (
     <View
-      className={`min-w-[220px] flex-1 rounded-[30px] border ${compact ? "p-4" : "p-5"}`}
+      className={`min-w-[220px] flex-1 rounded-[28px] border ${compact ? "p-4" : "p-5"}`}
       style={{ backgroundColor: colors.surface, borderColor: colors.border }}
     >
-      <View className="mb-4 flex-row items-center justify-between">
-        <View className="h-2 w-14 rounded-full" style={{ backgroundColor: accent }} />
-        {icon}
+      <View className="mb-4 flex-row items-start justify-between gap-3">
+        <View
+          className="h-11 w-11 items-center justify-center rounded-2xl"
+          style={{ backgroundColor: colors.surfaceAlt }}
+        >
+          {icon}
+        </View>
+        <View className="mt-1 h-2 w-2 rounded-full" style={{ backgroundColor: accent }} />
       </View>
+
       <Text className="text-sm" style={{ color: colors.muted }}>
         {label}
       </Text>
       <Text
-        className={`${compact ? "mt-2 text-3xl" : "mt-3 text-4xl"} font-bold`}
+        className={`${compact ? "mt-2 text-[32px]" : "mt-3 text-4xl"} font-bold`}
         style={{ color: colors.text }}
       >
         {value}

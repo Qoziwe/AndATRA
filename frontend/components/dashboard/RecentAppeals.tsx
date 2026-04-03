@@ -9,34 +9,36 @@ export const RecentAppeals = ({ appeals }: { appeals: Appeal[] }) => {
 
   return (
     <View
-      className="rounded-[30px] border p-5"
+      className="rounded-[28px] border p-5"
       style={{ backgroundColor: colors.surface, borderColor: colors.border }}
     >
-      <View className="mb-5 flex-row items-center justify-between">
-        <Text className="text-xl font-semibold" style={{ color: colors.text }}>
+      <View className="mb-4 flex-row items-center justify-between">
+        <Text className="text-lg font-semibold" style={{ color: colors.text }}>
           Последние обращения
         </Text>
         <Link href="/appeals" asChild>
           <Pressable>
             <Text className="text-sm font-semibold" style={{ color: colors.primary }}>
-              Смотреть все
+              Все обращения
             </Text>
           </Pressable>
         </Link>
       </View>
-      <View className="gap-4">
+
+      <View className="gap-3">
         {appeals.length ? (
           appeals.map((appeal) => (
             <Link href={`/appeals/${appeal.id}` as never} key={appeal.id} asChild>
               <Pressable
                 className="rounded-[22px] border px-4 py-4"
-                style={{ backgroundColor: colors.surfaceAlt, borderColor: colors.border }}
+                style={{ backgroundColor: colors.card, borderColor: colors.border }}
               >
                 <Text className="text-sm font-semibold" style={{ color: colors.text }}>
                   {appeal.title}
                 </Text>
                 <Text className="mt-1 text-sm" style={{ color: colors.muted }}>
-                  {appeal.districtName} • {appeal.locationText ?? "Локация не указана"}
+                  {appeal.districtName}
+                  {appeal.locationText ? ` • ${appeal.locationText}` : ""}
                 </Text>
                 <Text className="mt-2 text-xs" style={{ color: colors.muted }}>
                   {formatDateTime(appeal.createdAt)}

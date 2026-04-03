@@ -14,12 +14,13 @@ export const ChatWindow = ({
 
   return (
     <View
-      className="rounded-[28px] border p-3"
+      className="min-h-0 flex-1 rounded-[28px] border p-3"
       style={{ backgroundColor: colors.surface, borderColor: colors.border }}
     >
       <ScrollView
+        className="flex-1"
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ gap: 12, paddingBottom: 12, minHeight: 320 }}
+        contentContainerStyle={{ gap: 12, paddingBottom: 12, flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
         {messages.map((message) => (

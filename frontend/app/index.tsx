@@ -8,7 +8,6 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { ErrorMessage } from "@/components/common/ErrorMessage";
 import { FadeInView } from "@/components/common/FadeInView";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { PageHeader } from "@/components/common/PageHeader";
 import { AppIcon } from "@/components/icons/AppIcon";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useAppeals } from "@/hooks/useAppeals";
@@ -83,51 +82,70 @@ export default function DashboardPage() {
 
   return (
     <View>
-      <PageHeader
-        title="Оперативный дашборд"
-        subtitle="Ключевые сигналы по обращениям, районам и критическим кейсам в аккуратной сводке"
-        actions={[
-          { label: "TXT", onPress: handleExportTxt },
-          { label: "PDF", onPress: handleExportPdf },
-          { label: "Обновить", onPress: handleRefresh, primary: true }
-        ]}
-      />
-
-      <FadeInView delay={45}>
+      <FadeInView delay={40}>
         <View
-          className="mb-5 rounded-[28px] border px-5 py-4"
+          className="rounded-[30px] border p-5"
           style={{ backgroundColor: colors.surface, borderColor: colors.border }}
         >
-          <View className="flex-row flex-wrap items-center justify-between gap-4">
-            <View className="flex-1">
-              <Text className="text-lg font-semibold" style={{ color: colors.text }}>
-                Городская сводка за сегодня
+          <View className="flex-row flex-wrap items-start justify-between gap-4">
+            <View className="max-w-3xl flex-1">
+              <Text className="text-xl font-semibold" style={{ color: colors.text }}>
+                Городская сводка на сегодня
               </Text>
-              <Text className="mt-1 text-sm leading-6" style={{ color: colors.muted }}>
-                {statsQuery.data.totalAppeals} обращений в системе, {statsQuery.data.criticalAppeals} критических кейсов и {statsQuery.data.resolvedToday} решено сегодня.
+              <Text className="mt-2 text-sm leading-7" style={{ color: colors.muted }}>
+                {statsQuery.data.totalAppeals} обращений в системе, {statsQuery.data.criticalAppeals} критических
+                кейсов и {statsQuery.data.resolvedToday} решено сегодня.
               </Text>
             </View>
-            <Pressable
-              onPress={() => router.push("/reports")}
-              className="rounded-full px-4 py-3"
-              style={{ backgroundColor: colors.primarySoft }}
-            >
-              <Text className="text-sm font-semibold" style={{ color: colors.primary }}>
-                Открыть отчеты
-              </Text>
-            </Pressable>
+
+            <View className="flex-row flex-wrap gap-2">
+              <Pressable
+                onPress={handleExportTxt}
+                className="rounded-full px-4 py-3"
+                style={{ backgroundColor: colors.surfaceAlt }}
+              >
+                <Text className="text-sm font-semibold" style={{ color: colors.text }}>
+                  TXT
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleExportPdf}
+                className="rounded-full px-4 py-3"
+                style={{ backgroundColor: colors.surfaceAlt }}
+              >
+                <Text className="text-sm font-semibold" style={{ color: colors.text }}>
+                  PDF
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push("/reports")}
+                className="rounded-full px-4 py-3"
+                style={{ backgroundColor: colors.primarySoft }}
+              >
+                <Text className="text-sm font-semibold" style={{ color: colors.primary }}>
+                  Отчеты
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleRefresh}
+                className="rounded-full px-4 py-3"
+                style={{ backgroundColor: colors.primary }}
+              >
+                <Text className="text-sm font-semibold text-white">Обновить</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </FadeInView>
 
       {statsQuery.data.criticalNewAppeals > 0 ? (
-        <FadeInView delay={60}>
+        <FadeInView delay={70}>
           <AlertBanner count={statsQuery.data.criticalNewAppeals} />
         </FadeInView>
       ) : null}
 
-      <View className="flex-row flex-wrap gap-3">
-        <FadeInView delay={90} style={{ minWidth: 220, flex: 1 }}>
+      <View className="mt-5 flex-row flex-wrap gap-4">
+        <FadeInView delay={100} style={{ minWidth: 220, flex: 1 }}>
           <Pressable onPress={() => router.push("/appeals")} className="min-w-[220px] flex-1">
             <StatCard
               label="Всего обращений"
@@ -152,7 +170,7 @@ export default function DashboardPage() {
             />
           </Pressable>
         </FadeInView>
-        <FadeInView delay={170} style={{ minWidth: 220, flex: 1 }}>
+        <FadeInView delay={160} style={{ minWidth: 220, flex: 1 }}>
           <Pressable onPress={() => router.push("/analytics")} className="min-w-[220px] flex-1">
             <StatCard
               label="Решено сегодня"
@@ -163,7 +181,7 @@ export default function DashboardPage() {
             />
           </Pressable>
         </FadeInView>
-        <FadeInView delay={210} style={{ minWidth: 220, flex: 1 }}>
+        <FadeInView delay={190} style={{ minWidth: 220, flex: 1 }}>
           <Pressable onPress={() => router.push("/map")} className="min-w-[220px] flex-1">
             <StatCard
               label="Активные районы"
@@ -176,11 +194,11 @@ export default function DashboardPage() {
         </FadeInView>
       </View>
 
-      <View className="mt-5 flex-row flex-wrap gap-5">
-        <FadeInView delay={240} style={{ minWidth: 360, flex: 1.15 }}>
+      <View className="mt-6 flex-row flex-wrap gap-4">
+        <FadeInView delay={230} style={{ minWidth: 360, flex: 1.05 }}>
           <CategoryBreakdown data={categoriesQuery.data} />
         </FadeInView>
-        <FadeInView delay={280} style={{ minWidth: 320, flex: 1 }}>
+        <FadeInView delay={270} style={{ minWidth: 320, flex: 0.95 }}>
           <RecentAppeals appeals={recentAppealsQuery.data.items} />
         </FadeInView>
       </View>

@@ -12,6 +12,7 @@ const items = [
   { href: "/analytics", label: "Аналитика", icon: "analytics" as const },
   { href: "/map", label: "Карта города", icon: "map" as const },
   { href: "/air-quality", label: "Карта воздуха", icon: "leaf" as const },
+  { href: "/traffic-ai", label: "ИИ-пробки", icon: "trafficLight" as const },
   { href: "/categories", label: "Категории", icon: "categories" as const },
   { href: "/chat", label: "ИИ-ассистент", icon: "chat" as const },
   { href: "/reports", label: "Отчеты", icon: "reports" as const }
@@ -26,11 +27,11 @@ export const Sidebar = () => {
 
   return (
     <View
-      className={`border-r px-4 py-6 ${collapsed ? "w-[88px]" : "w-[280px]"}`}
+      className={`border-r px-4 py-6 ${collapsed ? "w-[88px]" : "w-[248px]"}`}
       style={{ backgroundColor: colors.panel, borderColor: colors.border }}
     >
       <FadeInView delay={40}>
-        <View className="mb-8">
+        <View className="mb-6">
           <View
             className="mb-3 h-12 w-12 items-center justify-center rounded-2xl"
             style={{ backgroundColor: colors.primarySoft }}
@@ -41,17 +42,14 @@ export const Sidebar = () => {
             {collapsed ? "A" : APP_NAME}
           </Text>
           {!collapsed ? (
-            <Text
-              className="mt-1 text-xs uppercase tracking-[2px]"
-              style={{ color: colors.muted }}
-            >
-              Платформа городских обращений
+            <Text className="mt-1 text-xs uppercase tracking-[2px]" style={{ color: colors.muted }}>
+              Городская платформа
             </Text>
           ) : null}
         </View>
       </FadeInView>
 
-      <View className="gap-2">
+      <View className="gap-1.5">
         {items.map((item, index) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -59,7 +57,7 @@ export const Sidebar = () => {
             <FadeInView key={item.href} delay={90 + index * 35}>
               <Link href={item.href as never} asChild>
                 <Pressable
-                  className="flex-row items-center gap-3 rounded-[22px] px-3 py-3"
+                  className="flex-row items-center gap-3 rounded-[20px] px-3 py-2.5"
                   style={{
                     backgroundColor: active ? colors.primarySoft : "transparent",
                     borderWidth: active ? 1 : 0,
@@ -67,10 +65,8 @@ export const Sidebar = () => {
                   }}
                 >
                   <View
-                    className="h-10 w-10 items-center justify-center rounded-2xl"
-                    style={{
-                      backgroundColor: active ? colors.primary : colors.surfaceAlt
-                    }}
+                    className="h-9 w-9 items-center justify-center rounded-2xl"
+                    style={{ backgroundColor: active ? colors.primary : colors.surfaceAlt }}
                   >
                     <AppIcon
                       name={item.icon}
@@ -79,28 +75,9 @@ export const Sidebar = () => {
                     />
                   </View>
                   {!collapsed ? (
-                    <View className="flex-1">
-                      <Text className="text-sm font-semibold" style={{ color: colors.text }}>
-                        {item.label}
-                      </Text>
-                      <Text className="mt-1 text-xs" style={{ color: colors.muted }}>
-                        {item.href === "/"
-                          ? "Оперативная лента"
-                          : item.href === "/appeals"
-                            ? "Реестр кейсов"
-                            : item.href === "/analytics"
-                              ? "Тренды и районы"
-                              : item.href === "/map"
-                                ? "Геообзор"
-                                : item.href === "/air-quality"
-                                  ? "AQI и PM2.5"
-                                  : item.href === "/categories"
-                                    ? "Справочник"
-                                    : item.href === "/chat"
-                                      ? "Диалоговый режим"
-                                      : "PDF и TXT"}
-                      </Text>
-                    </View>
+                    <Text className="flex-1 text-sm font-semibold" style={{ color: colors.text }}>
+                      {item.label}
+                    </Text>
                   ) : null}
                 </Pressable>
               </Link>
@@ -111,31 +88,34 @@ export const Sidebar = () => {
 
       <FadeInView delay={320} style={{ marginTop: "auto" }}>
         <View
-          className="rounded-[28px] border px-4 py-4"
+          className="rounded-[24px] border px-4 py-3.5"
           style={{ backgroundColor: colors.surface, borderColor: colors.border }}
         >
           {!collapsed ? (
-            <>
-              <Text className="text-sm font-semibold" style={{ color: colors.text }}>
-                Системный статус
-              </Text>
-              <Text className="mt-2 text-xs" style={{ color: colors.muted }}>
-                API: {realtimeStatus === "offline" ? "недоступно" : "онлайн"}
-              </Text>
-              <Text className="mt-1 text-xs" style={{ color: colors.muted }}>
-                WS:{" "}
+            <View
+              className="mb-3 self-start rounded-full px-3 py-1.5"
+              style={{
+                backgroundColor:
+                  realtimeStatus === "live"
+                    ? "rgba(34, 197, 94, 0.12)"
+                    : realtimeStatus === "reconnecting"
+                      ? "rgba(245, 158, 11, 0.12)"
+                      : "rgba(239, 68, 68, 0.12)"
+              }}
+            >
+              <Text className="text-xs font-semibold" style={{ color: colors.text }}>
                 {realtimeStatus === "live"
-                  ? "подключено"
+                  ? "Система онлайн"
                   : realtimeStatus === "reconnecting"
-                    ? "переподключение"
-                    : "офлайн"}
+                    ? "Идет переподключение"
+                    : "Система офлайн"}
               </Text>
-            </>
+            </View>
           ) : null}
 
           <Pressable
             onPress={toggleSidebar}
-            className="mt-4 flex-row items-center justify-center gap-2 rounded-full px-3 py-3"
+            className="flex-row items-center justify-center gap-2 rounded-full px-3 py-2.5"
             style={{ backgroundColor: colors.surfaceAlt }}
           >
             <AppIcon

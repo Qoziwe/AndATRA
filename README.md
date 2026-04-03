@@ -114,6 +114,7 @@ AndATRA/
 Additional component-level docs:
 
 - [RUN_GUIDE.md](RUN_GUIDE.md)
+- [PROJECT_WALKTHROUGH.md](PROJECT_WALKTHROUGH.md)
 - [backend/README.md](backend/README.md)
 - [frontend/README.md](frontend/README.md)
 - [telegram/README.md](telegram/README.md)

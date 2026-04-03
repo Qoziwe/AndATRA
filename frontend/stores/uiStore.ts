@@ -22,7 +22,7 @@ export const useUiStore = create<UiState>((set) => ({
   sidebarCollapsed: false,
   realtimeStatus: "offline",
   globalSearch: "",
-  theme: "dark",
+  theme: "light",
   profileMenuOpen: false,
   toggleSidebar: () =>
     set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),

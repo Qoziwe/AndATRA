@@ -32,7 +32,8 @@ type IconName =
   | "wind"
   | "heartPulse"
   | "road"
-  | "bolt";
+  | "bolt"
+  | "trafficLight";
 
 interface AppIconProps {
   name: IconName;
@@ -278,6 +279,15 @@ export const AppIcon = ({
       return (
         <Svg width={size} height={size} viewBox="0 0 24 24">
           <Path d="M13 3 6.5 13H12l-1 8 6.5-10H12z" {...stroke} />
+        </Svg>
+      );
+    case "trafficLight":
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+          <Rect x="7" y="2" width="10" height="20" rx="3" {...stroke} />
+          <Circle cx="12" cy="7" r="1.5" fill={color} />
+          <Circle cx="12" cy="12" r="1.5" fill={color} />
+          <Circle cx="12" cy="17" r="1.5" fill={color} />
         </Svg>
       );
     default:

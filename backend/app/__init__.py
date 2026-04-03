@@ -58,6 +58,7 @@ def create_app(config_class=Config):
     from app.api.chat import chat_bp
     from app.api.districts import districts_bp
     from app.api.health import health_bp
+    from app.api.traffic import traffic_bp
 
     app.register_blueprint(health_bp, url_prefix="/api")
     app.register_blueprint(appeals_bp, url_prefix="/api")
@@ -65,6 +66,7 @@ def create_app(config_class=Config):
     app.register_blueprint(chat_bp, url_prefix="/api")
     app.register_blueprint(categories_bp, url_prefix="/api")
     app.register_blueprint(districts_bp, url_prefix="/api")
+    app.register_blueprint(traffic_bp, url_prefix="/api")
 
     from app.api import register_socketio_events
 

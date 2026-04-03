@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { router, usePathname } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
 import { FadeInView } from "@/components/common/FadeInView";
 import { AppIcon } from "@/components/icons/AppIcon";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -19,7 +18,7 @@ const titles: Record<string, { title: string; subtitle: string }> = {
   },
   "/analytics": {
     title: "Аналитика",
-    subtitle: "Тренды, районы и ключевые показатели на русском языке"
+    subtitle: "Тренды, районы и ключевые показатели в одном спокойном обзоре"
   },
   "/map": {
     title: "Карта города",
@@ -31,17 +30,20 @@ const titles: Record<string, { title: string; subtitle: string }> = {
   },
   "/chat": {
     title: "ИИ-ассистент",
-    subtitle: "Современный чат-интерфейс для диалога с данными и сводками"
+    subtitle: "Диалог с данными и сводками без лишних действий на экране"
   },
   "/reports": {
     title: "Отчеты",
-    subtitle: "Подготовка управленческих отчетов с экспортом в PDF и TXT"
+    subtitle: "Подготовка управленческих отчетов и быстрый экспорт"
+  },
+  "/profile": {
+    title: "Мой профиль",
+    subtitle: "Личные настройки, статус системы и быстрые переходы"
   }
 };
 
 export const Header = () => {
   const pathname = usePathname();
-  const queryClient = useQueryClient();
   const pageMeta =
     Object.entries(titles).find(([key]) =>
       key === "/" ? pathname === "/" : pathname.startsWith(key)
@@ -60,14 +62,6 @@ export const Header = () => {
     closeProfileMenu();
   }, [closeProfileMenu, pathname]);
 
-  const handleRefresh = async () => {
-    await queryClient.invalidateQueries();
-    pushToast({
-      title: "Данные обновлены",
-      description: "Кэш запросов очищен и загружен заново."
-    });
-  };
-
   const handleSearch = () => {
     const value = search.trim();
     if (!value) {
@@ -85,32 +79,48 @@ export const Header = () => {
     });
   };
 
+  const statusColor =
+    realtimeStatus === "live"
+      ? "rgba(34, 197, 94, 0.12)"
+      : realtimeStatus === "reconnecting"
+        ? "rgba(245, 158, 11, 0.14)"
+        : "rgba(239, 68, 68, 0.12)";
+
   return (
     <FadeInView>
       <View
-        className="mb-6 rounded-[32px] border px-5 py-4"
+        className="mb-6 rounded-[30px] border px-5 py-4"
         style={{
           backgroundColor: colors.card,
           borderColor: colors.border,
-          zIndex: profileMenuOpen ? 160 : 10
+          zIndex: profileMenuOpen ? 500 : 20,
+          elevation: profileMenuOpen ? 20 : 0
         }}
       >
         <View className="flex-row flex-wrap items-center justify-between gap-4">
-          <View>
-            <Text className="text-2xl font-bold" style={{ color: colors.text }}>
-              {pageMeta.title}
-            </Text>
-            <Text
-              className="mt-1 max-w-2xl text-sm leading-6"
-              style={{ color: colors.muted }}
-            >
+          <View className="max-w-2xl">
+            <View className="flex-row flex-wrap items-center gap-3">
+              <Text className="text-2xl font-bold" style={{ color: colors.text }}>
+                {pageMeta.title}
+              </Text>
+              <View className="rounded-full px-3 py-1.5" style={{ backgroundColor: statusColor }}>
+                <Text className="text-xs font-semibold" style={{ color: colors.text }}>
+                  {realtimeStatus === "live"
+                    ? "Онлайн"
+                    : realtimeStatus === "reconnecting"
+                      ? "Задержка"
+                      : "Офлайн"}
+                </Text>
+              </View>
+            </View>
+            <Text className="mt-1 max-w-2xl text-sm leading-6" style={{ color: colors.muted }}>
               {pageMeta.subtitle}
             </Text>
           </View>
 
           <View className="min-w-[320px] flex-1 flex-row flex-wrap items-center justify-end gap-3">
             <View
-              className="min-w-[280px] flex-1 flex-row items-center gap-3 rounded-full border px-4 py-3"
+              className="min-w-[260px] flex-1 flex-row items-center gap-3 rounded-full border px-4 py-3"
               style={{ backgroundColor: colors.surfaceAlt, borderColor: colors.border }}
             >
               <AppIcon name="search" size={18} color={colors.muted} />
@@ -126,14 +136,6 @@ export const Header = () => {
             </View>
 
             <Pressable
-              onPress={handleRefresh}
-              className="h-12 w-12 items-center justify-center rounded-full"
-              style={{ backgroundColor: colors.primarySoft }}
-            >
-              <AppIcon name="refresh" color={colors.primary} />
-            </Pressable>
-
-            <Pressable
               onPress={handleSearch}
               className="rounded-full px-4 py-3"
               style={{ backgroundColor: colors.primary }}
@@ -146,34 +148,13 @@ export const Header = () => {
               className="h-12 w-12 items-center justify-center rounded-full"
               style={{ backgroundColor: colors.surfaceAlt }}
             >
-              <AppIcon
-                name={isDark ? "sun" : "moon"}
-                color={colors.text}
-                size={18}
-              />
+              <AppIcon name={isDark ? "sun" : "moon"} color={colors.text} size={18} />
             </Pressable>
 
             <View
-              className="rounded-full px-3 py-2"
-              style={{
-                backgroundColor:
-                  realtimeStatus === "live"
-                    ? "rgba(34, 197, 94, 0.15)"
-                    : realtimeStatus === "reconnecting"
-                      ? "rgba(245, 158, 11, 0.18)"
-                      : "rgba(239, 68, 68, 0.18)"
-              }}
+              className="relative"
+              style={{ zIndex: profileMenuOpen ? 900 : 30, elevation: profileMenuOpen ? 24 : 0 }}
             >
-              <Text className="text-xs font-semibold" style={{ color: colors.text }}>
-                {realtimeStatus === "live"
-                  ? "Онлайн"
-                  : realtimeStatus === "reconnecting"
-                    ? "Задержка"
-                    : "Офлайн"}
-              </Text>
-            </View>
-
-            <View className="relative" style={{ zIndex: profileMenuOpen ? 220 : 1 }}>
               <Pressable
                 onPress={toggleProfileMenu}
                 className="flex-row items-center gap-3 rounded-full border px-3 py-2"
@@ -200,7 +181,7 @@ export const Header = () => {
 
               {profileMenuOpen ? (
                 <View
-                  className="absolute right-0 top-[60px] z-50 w-[220px] rounded-[24px] border p-2"
+                  className="absolute right-0 top-[60px] w-[220px] rounded-[24px] border p-2"
                   style={{
                     backgroundColor: colors.card,
                     borderColor: colors.border,
@@ -208,17 +189,14 @@ export const Header = () => {
                     shadowOpacity: 1,
                     shadowRadius: 18,
                     shadowOffset: { width: 0, height: 12 },
-                    elevation: 10,
-                    zIndex: 260
+                    elevation: 30,
+                    zIndex: 9999
                   }}
                 >
                   <Pressable
                     onPress={() => {
                       closeProfileMenu();
-                      pushToast({
-                        title: "Профиль открыт",
-                        description: "Раздел профиля доступен из этого меню."
-                      });
+                      router.push("/profile");
                     }}
                     className="rounded-2xl px-4 py-3"
                   >
@@ -235,17 +213,6 @@ export const Header = () => {
                   >
                     <Text className="text-sm" style={{ color: colors.text }}>
                       {isDark ? "Включить светлую тему" : "Включить темную тему"}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => {
-                      closeProfileMenu();
-                      router.push("/reports");
-                    }}
-                    className="rounded-2xl px-4 py-3"
-                  >
-                    <Text className="text-sm" style={{ color: colors.text }}>
-                      Открыть отчеты
                     </Text>
                   </Pressable>
                 </View>

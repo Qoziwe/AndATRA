@@ -19,9 +19,9 @@ export const PageHeader = ({ title, subtitle, actions = [] }: PageHeaderProps) =
 
   return (
     <FadeInView>
-      <View className="mb-6 flex-row flex-wrap items-start justify-between gap-4">
-        <View className="max-w-3xl">
-          <Text className="text-3xl font-bold tracking-tight" style={{ color: colors.text }}>
+      <View className="mb-5 flex-row flex-wrap items-start justify-between gap-4">
+        <View className="max-w-2xl">
+          <Text className="text-[28px] font-bold tracking-tight" style={{ color: colors.text }}>
             {title}
           </Text>
           <Text className="mt-2 text-sm leading-6" style={{ color: colors.muted }}>
@@ -29,27 +29,29 @@ export const PageHeader = ({ title, subtitle, actions = [] }: PageHeaderProps) =
           </Text>
         </View>
 
-        <View className="flex-row flex-wrap gap-3">
-          {actions.map((action) => (
-            <Pressable
-              key={action.label}
-              onPress={action.onPress}
-              className="rounded-full px-4 py-3"
-              style={{
-                backgroundColor: action.primary ? colors.primary : colors.surfaceAlt,
-                borderWidth: action.primary ? 0 : 1,
-                borderColor: action.primary ? "transparent" : colors.border
-              }}
-            >
-              <Text
-                className="text-sm font-semibold"
-                style={{ color: action.primary ? "#FFFFFF" : colors.text }}
+        {actions.length ? (
+          <View className="flex-row flex-wrap gap-2">
+            {actions.map((action) => (
+              <Pressable
+                key={action.label}
+                onPress={action.onPress}
+                className="rounded-full px-4 py-3"
+                style={{
+                  backgroundColor: action.primary ? colors.primary : colors.surfaceAlt,
+                  borderWidth: action.primary ? 0 : 1,
+                  borderColor: action.primary ? "transparent" : colors.border
+                }}
               >
-                {action.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+                <Text
+                  className="text-sm font-semibold"
+                  style={{ color: action.primary ? "#FFFFFF" : colors.text }}
+                >
+                  {action.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
       </View>
     </FadeInView>
   );

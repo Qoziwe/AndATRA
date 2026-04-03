@@ -20,7 +20,21 @@ class Config:
     FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() == "true"
     AUTO_SEED_REFERENCE_DATA = os.getenv("AUTO_SEED_REFERENCE_DATA", "true").lower() == "true"
 
-    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+    _default_cors_origins = ",".join(
+        [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:8081",
+            "http://127.0.0.1:8081",
+            "http://localhost:19006",
+            "http://127.0.0.1:19006",
+        ]
+    )
+    CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv("CORS_ORIGINS", _default_cors_origins).split(",")
+        if origin.strip()
+    ]
     SOCKETIO_ASYNC_MODE = os.getenv("SOCKETIO_ASYNC_MODE", "threading")
 
     # LLM Ollama endpoints
@@ -39,6 +53,9 @@ class Config:
 
     # Mock mode for development without GPU/Ollama
     LLM_MOCK_MODE = os.getenv("LLM_MOCK_MODE", "false").lower() == "true"
+    
+    # Optional Gemini Fallback
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
     # Reverse geocoding for location enrichment
     GEOCODING_ENABLED = os.getenv("GEOCODING_ENABLED", "true").lower() == "true"
