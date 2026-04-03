@@ -1,0 +1,176 @@
+# =========================
+# AndATRA Monorepo Ignore
+# =========================
+
+# -------------------------
+# OS / File Explorer junk
+# -------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+ehthumbs.db
+
+# -------------------------
+# Editors / IDE
+# -------------------------
+.vscode/
+.idea/
+*.iml
+*.suo
+*.user
+*.userossc
+*.sln.docstates
+*.swp
+*.swo
+*~
+
+# -------------------------
+# Logs / temp / runtime
+# -------------------------
+*.log
+*.out
+*.err
+*.pid
+*.pid.lock
+tmp/
+temp/
+.cache/
+
+# -------------------------
+# Environment files
+# Keep examples committed
+# -------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+telegram/.env
+frontend/.env
+
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+**/.venv/
+**/venv/
+**/env/
+
+# Packaging / build
+build/
+dist/
+site/
+.eggs/
+*.egg
+*.egg-info/
+pip-wheel-metadata/
+
+# Test / coverage / typing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+.tox/
+.nox/
+coverage.xml
+pytestdebug.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# -------------------------
+# Flask / backend specifics
+# -------------------------
+instance/
+backend/instance/
+backend/.pytest_cache/
+backend/htmlcov/
+backend/.coverage
+backend/.coverage.*
+backend/migrations/versions/__pycache__/
+
+# SQLite / local databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+backend/andatra.db
+backend/instance/*.db
+backend/instance/*.sqlite
+backend/instance/*.sqlite3
+
+# -------------------------
+# Node / frontend
+# -------------------------
+node_modules/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Package manager caches
+.npm/
+.pnpm-store/
+.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Expo / React Native / Metro
+.expo/
+frontend/.expo/
+.expo-shared/
+frontend/.expo-shared/
+web-build/
+frontend/web-build/
+.metro-health-check*
+expo-env.d.ts
+frontend/expo-env.d.ts
+
+# TypeScript / bundlers
+*.tsbuildinfo
+.parcel-cache/
+
+# -------------------------
+# Telegram bot / Python test artifacts
+# -------------------------
+telegram/.pytest_cache/
+telegram/htmlcov/
+telegram/.coverage
+telegram/.coverage.*
+
+# -------------------------
+# Local artifacts / exports
+# -------------------------
+*.csv
+*.txt
+*.bak
+*.tmp
+
+# -------------------------
+# Keep tracked examples/docs
+# -------------------------
+!.env.example
+!backend/.env.example
+!telegram/.env.example
+!frontend/.env.example

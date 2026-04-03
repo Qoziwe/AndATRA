@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  transition:
+    background 220ms ease,
+    color 220ms ease;
+}
+
+body[data-theme="dark"] {
+  background:
+    radial-gradient(circle at top left, rgba(90, 140, 255, 0.18), transparent 28%),
+    radial-gradient(circle at 85% 10%, rgba(42, 201, 135, 0.1), transparent 24%),
+    linear-gradient(180deg, #08111f 0%, #0c1728 48%, #07111d 100%);
+  color: #f8fbff;
+}
+
+body[data-theme="light"] {
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 26%),
+    radial-gradient(circle at 100% 10%, rgba(6, 182, 212, 0.12), transparent 20%),
+    linear-gradient(180deg, #f5f8fc 0%, #eef4ff 54%, #f7fafc 100%);
+  color: #10203a;
+}
