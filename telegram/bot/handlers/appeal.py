@@ -21,6 +21,7 @@ from bot.keyboards.categories import (
     confirm_keyboard,
     format_category_label,
 )
+from bot.keyboards.location import location_keyboard
 from bot.keyboards.main_menu import APPEAL_BUTTON, main_menu_keyboard
 from bot.services import api_client
 from bot.states import (
@@ -133,7 +134,10 @@ async def photo_received(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     image_bytes = await analysis_file.download_as_bytearray()
     context.user_data["photo_url"] = preview_file.file_path
     context.user_data["photo_base64"] = base64.b64encode(image_bytes).decode("ascii")
-    await update.message.reply_html(messages.ASK_LOCATION)
+    await update.message.reply_html(
+        messages.ASK_LOCATION,
+        reply_markup=location_keyboard(),
+    )
     return WAITING_LOCATION
 
 
@@ -141,7 +145,10 @@ async def photo_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """User chose to skip the photo step."""
     context.user_data["photo_url"] = None
     context.user_data["photo_base64"] = None
-    await update.message.reply_html(messages.ASK_LOCATION)
+    await update.message.reply_html(
+        messages.ASK_LOCATION,
+        reply_markup=location_keyboard(),
+    )
     return WAITING_LOCATION
 
 

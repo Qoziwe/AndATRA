@@ -11,6 +11,7 @@ const items = [
   { href: "/appeals", label: "Обращения", icon: "appeals" as const },
   { href: "/analytics", label: "Аналитика", icon: "analytics" as const },
   { href: "/map", label: "Карта города", icon: "map" as const },
+  { href: "/air-quality", label: "Карта воздуха", icon: "leaf" as const },
   { href: "/categories", label: "Категории", icon: "categories" as const },
   { href: "/chat", label: "ИИ-ассистент", icon: "chat" as const },
   { href: "/reports", label: "Отчеты", icon: "reports" as const }
@@ -52,8 +53,7 @@ export const Sidebar = () => {
 
       <View className="gap-2">
         {items.map((item, index) => {
-          const active =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <FadeInView key={item.href} delay={90 + index * 35}>
@@ -92,11 +92,13 @@ export const Sidebar = () => {
                               ? "Тренды и районы"
                               : item.href === "/map"
                                 ? "Геообзор"
-                                : item.href === "/categories"
-                                  ? "Справочник"
-                                  : item.href === "/chat"
-                                    ? "Диалоговый режим"
-                                    : "PDF и TXT"}
+                                : item.href === "/air-quality"
+                                  ? "AQI и PM2.5"
+                                  : item.href === "/categories"
+                                    ? "Справочник"
+                                    : item.href === "/chat"
+                                      ? "Диалоговый режим"
+                                      : "PDF и TXT"}
                       </Text>
                     </View>
                   ) : null}

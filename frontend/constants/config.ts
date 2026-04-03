@@ -8,6 +8,8 @@ const env =
 export const APP_NAME = env.EXPO_PUBLIC_APP_NAME ?? "AndATRA";
 export const BACKEND_URL = env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
 export const TOMTOM_TRAFFIC_API_KEY = env.EXPO_PUBLIC_TOMTOM_API_KEY ?? "";
+export const AIR_QUALITY_API_URL =
+  env.EXPO_PUBLIC_AIR_QUALITY_API_URL ?? "https://air-quality-api.open-meteo.com/v1/air-quality";
 
 export const getTomTomTrafficTileUrl = (style: "relative0" | "relative0-dark" = "relative0") =>
   TOMTOM_TRAFFIC_API_KEY

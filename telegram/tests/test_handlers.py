@@ -5,6 +5,7 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from telegram import ReplyKeyboardMarkup
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -128,6 +129,10 @@ async def test_appeal_flow_skip_photo():
     assert state == WAITING_LOCATION
     assert ctx.user_data["photo_url"] is None
     assert ctx.user_data["photo_base64"] is None
+    update.message.reply_html.assert_called_once()
+    reply_markup = update.message.reply_html.call_args.kwargs["reply_markup"]
+    assert isinstance(reply_markup, ReplyKeyboardMarkup)
+    assert reply_markup.keyboard[0][0].request_location is True
 
 
 @pytest.mark.asyncio

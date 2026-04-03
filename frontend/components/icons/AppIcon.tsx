@@ -29,6 +29,7 @@ type IconName =
   | "leaf"
   | "shield"
   | "droplet"
+  | "wind"
   | "heartPulse"
   | "road"
   | "bolt";
@@ -249,6 +250,14 @@ export const AppIcon = ({
         <Svg width={size} height={size} viewBox="0 0 24 24">
           <Path d="M12 4c3.3 4.1 5 7 5 9.5a5 5 0 1 1-10 0C7 11 8.7 8.1 12 4Z" {...stroke} />
           <Path d="M10 15.2c.3.9 1 1.5 2 1.8" {...stroke} />
+        </Svg>
+      );
+    case "wind":
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+          <Path d="M4 9h9a3 3 0 1 0-3-3" {...stroke} />
+          <Path d="M3 13h13a2.5 2.5 0 1 1-2.5 2.5" {...stroke} />
+          <Path d="M5 17h7a2 2 0 1 1-2 2" {...stroke} />
         </Svg>
       );
     case "heartPulse":
