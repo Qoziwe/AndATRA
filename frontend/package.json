@@ -6,7 +6,9 @@
   "scripts": {
     "start": "expo start",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:web": "expo export -p web --output-dir dist",
+    "build:github-pages": "node ./scripts/export-github-pages.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",

@@ -220,6 +220,31 @@ cd frontend
 npm run web
 ```
 
+### 6a. Publish the frontend to GitHub Pages
+
+The repository now includes a GitHub Actions workflow at `.github/workflows/deploy-frontend-pages.yml` that exports the Expo web app and deploys it to GitHub Pages.
+
+Before the first deployment:
+
+- enable GitHub Pages in the repository settings and select `GitHub Actions` as the source
+- add the repository variable `EXPO_PUBLIC_BACKEND_URL` with the public base URL of your backend API
+- optionally add `EXPO_PUBLIC_TOMTOM_API_KEY`, `EXPO_PUBLIC_AIR_QUALITY_API_URL`, and `GITHUB_PAGES_CNAME`
+
+What happens after that:
+
+- every push to `main` that changes `frontend/**` triggers a fresh Pages deployment
+- the workflow automatically exports the app with the repository subpath, creates `404.html` for Expo Router refreshes, and adds `.nojekyll`
+- for this repository the site URL will be `https://qozziwe.github.io/AndATRA/`
+
+You can also generate the deployable build locally:
+
+```powershell
+cd frontend
+$env:GITHUB_REPOSITORY="Qoziwe/AndATRA"
+$env:GITHUB_PAGES_BASE_PATH="/AndATRA"
+npm run build:github-pages
+```
+
 ### 7. Start the Telegram bot
 
 ```powershell
@@ -304,4 +329,3 @@ python -m pytest
 - richer audit logs and observability
 - multilingual support
 - media storage abstraction for uploaded photos
-
