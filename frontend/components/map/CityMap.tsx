@@ -1,13 +1,15 @@
 import { useEffect, useMemo } from "react";
 import { Platform, Text, View } from "react-native";
-import { getTomTomTrafficTileUrl } from "@/constants/config";
+import { CATEGORY_COLORS, PRIORITY_LABELS, STATUS_LABELS, getTomTomTrafficTileUrl } from "@/constants/config";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import type { DistrictHeatmap } from "@/types/analytics";
+import type { Appeal } from "@/types/appeal";
 
 export type MapLayerMode = "appeals" | "traffic" | "hybrid";
 
 interface CityMapProps {
   points: DistrictHeatmap[];
+  appeals?: Appeal[];
   selectedDistrictSlug?: string;
   layerMode?: MapLayerMode;
   focusPoint?: {
@@ -20,6 +22,7 @@ interface CityMapProps {
 
 export const CityMap = ({
   points,
+  appeals = [],
   selectedDistrictSlug,
   layerMode = "appeals",
   focusPoint
@@ -30,6 +33,15 @@ export const CityMap = ({
   const trafficTileUrl = getTomTomTrafficTileUrl(isDark ? "relative0-dark" : "relative0");
   const showAppealsLayer = layerMode !== "traffic";
   const showTrafficLayer = layerMode !== "appeals" && Boolean(trafficTileUrl);
+  const visibleAppeals = useMemo(
+    () =>
+      appeals.filter(
+        (appeal) =>
+          Boolean(appeal.locationText) &&
+          (!selectedDistrictSlug || appeal.district?.slug === selectedDistrictSlug)
+      ),
+    [appeals, selectedDistrictSlug]
+  );
 
   if (Platform.OS !== "web") {
     return (
@@ -46,6 +58,35 @@ export const CityMap = ({
   require("leaflet/dist/leaflet.css");
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { CircleMarker, MapContainer, Popup, TileLayer, useMap } = require("react-leaflet");
+
+  const getAppealPosition = (appeal: Appeal): [number, number] => {
+    if (appeal.latitude != null && appeal.longitude != null) {
+      return [appeal.latitude, appeal.longitude];
+    }
+
+    const districtCenter = appeal.district?.coordinatesCenter;
+    const baseLat = districtCenter?.lat ?? center[0];
+    const baseLng = districtCenter?.lng ?? center[1];
+    const seed = appeal.id * 137.508;
+    const angle = ((seed % 360) * Math.PI) / 180;
+    const radius = districtCenter ? 0.0032 : 0.0075;
+    const scale = ((appeal.id % 5) + 1) / 5;
+
+    return [
+      baseLat + Math.sin(angle) * radius * scale,
+      baseLng + Math.cos(angle) * radius * scale
+    ];
+  };
+
+  const getAppealColor = (appeal: Appeal) => {
+    if (appeal.status === "resolved") {
+      return "#22C55E";
+    }
+    if (appeal.status === "irrelevant" || appeal.status === "rejected") {
+      return "#64748B";
+    }
+    return CATEGORY_COLORS[appeal.categorySlug as keyof typeof CATEGORY_COLORS] ?? CATEGORY_COLORS.default;
+  };
 
   const FocusController = ({
     point,
@@ -81,12 +122,7 @@ export const CityMap = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {showTrafficLayer ? (
-          <TileLayer
-            attribution="&copy; TomTom"
-            opacity={0.92}
-            url={trafficTileUrl}
-            zIndex={300}
-          />
+          <TileLayer attribution="&copy; TomTom" opacity={0.92} url={trafficTileUrl} zIndex={300} />
         ) : null}
         <FocusController point={selectedPoint} exactPoint={focusPoint} />
         {focusPoint ? (
@@ -109,6 +145,40 @@ export const CityMap = ({
           </CircleMarker>
         ) : null}
         {showAppealsLayer
+          ? visibleAppeals.map((appeal) => {
+              const [latitude, longitude] = getAppealPosition(appeal);
+              const isApproximate = appeal.latitude == null || appeal.longitude == null;
+              const markerColor = getAppealColor(appeal);
+
+              return (
+                <CircleMarker
+                  key={`appeal-${appeal.id}`}
+                  center={[latitude, longitude]}
+                  radius={6}
+                  pathOptions={{
+                    color: markerColor,
+                    fillColor: markerColor,
+                    fillOpacity: 0.85,
+                    weight: 2
+                  }}
+                >
+                  <Popup>
+                    <div>
+                      <strong>Обращение #{appeal.id}</strong>
+                      <div>{appeal.title}</div>
+                      <div>Статус: {STATUS_LABELS[appeal.status]}</div>
+                      <div>Приоритет: {PRIORITY_LABELS[appeal.priority]}</div>
+                      <div>Категория: {appeal.categoryName}</div>
+                      <div>Адрес: {appeal.locationText ?? "Не указан"}</div>
+                      <div>Район: {appeal.districtName}</div>
+                      {isApproximate ? <div>Точка показана приблизительно.</div> : null}
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              );
+            })
+          : null}
+        {showAppealsLayer
           ? points.map((point) => {
               const isSelected = point.districtSlug === selectedDistrictSlug;
 
@@ -126,7 +196,7 @@ export const CityMap = ({
                           ? "#F59E0B"
                           : "#3B82F6",
                     fillColor: isSelected ? "#60A5FA" : undefined,
-                    fillOpacity: isSelected ? 0.7 : 0.45,
+                    fillOpacity: isSelected ? 0.35 : 0.18,
                     weight: isSelected ? 3 : 2
                   }}
                 >

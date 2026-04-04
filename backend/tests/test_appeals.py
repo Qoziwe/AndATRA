@@ -255,6 +255,16 @@ class TestAppealsList:
             if item.get("category"):
                 assert item["category"]["slug"] == "transport"
 
+    def test_get_map_appeals(self, client):
+        """GET /api/appeals/map returns only appeals with an address."""
+        resp = client.get("/api/appeals/map")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["success"] is True
+        assert isinstance(data["data"], list)
+        for item in data["data"]:
+            assert item["location_text"]
+
 
 class TestAppealDetail:
     """Tests for GET /api/appeals/<id>."""
@@ -270,6 +280,46 @@ class TestAppealDetail:
     def test_get_appeal_not_found(self, client):
         """GET /api/appeals/99999 returns 404."""
         resp = client.get("/api/appeals/99999")
+        assert resp.status_code == 404
+        data = resp.get_json()
+        assert data["success"] is False
+
+
+class TestAppealStatusUpdate:
+    """Tests for PATCH /api/appeals/<id>/status."""
+
+    def test_update_appeal_status(self, client):
+        """PATCH updates an appeal status and returns the updated entity."""
+        resp = client.patch("/api/appeals/1/status", json={"status": "irrelevant"})
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["success"] is True
+        assert data["data"]["id"] == 1
+        assert data["data"]["status"] == "irrelevant"
+
+    def test_update_appeal_status_invalid_value(self, client):
+        """PATCH with an unsupported status returns 400."""
+        resp = client.patch("/api/appeals/1/status", json={"status": "closed"})
+
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert data["success"] is False
+        assert "Invalid status" in data["error"]
+
+    def test_update_appeal_status_requires_status(self, client):
+        """PATCH without status returns 400."""
+        resp = client.patch("/api/appeals/1/status", json={})
+
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert data["success"] is False
+        assert "status" in data["error"]
+
+    def test_update_appeal_status_not_found(self, client):
+        """PATCH for a missing appeal returns 404."""
+        resp = client.patch("/api/appeals/99999/status", json={"status": "resolved"})
+
         assert resp.status_code == 404
         data = resp.get_json()
         assert data["success"] is False

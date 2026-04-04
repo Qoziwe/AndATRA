@@ -15,7 +15,16 @@ export const useRealtime = () => {
     socket.on("connect_error", () => setRealtimeStatus("reconnecting"));
     socket.on("new_appeal", () => {
       queryClient.invalidateQueries({ queryKey: ["appeals"] });
+      queryClient.invalidateQueries({ queryKey: ["appeals-map"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    });
+    socket.on("appeal_updated", () => {
+      queryClient.invalidateQueries({ queryKey: ["appeals"] });
+      queryClient.invalidateQueries({ queryKey: ["appeals-map"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics-heatmap"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics-trends"] });
     });
 
     socket.connect();
@@ -25,6 +34,7 @@ export const useRealtime = () => {
       socket.off("disconnect");
       socket.off("connect_error");
       socket.off("new_appeal");
+      socket.off("appeal_updated");
       socket.disconnect();
     };
   }, [queryClient, setRealtimeStatus]);

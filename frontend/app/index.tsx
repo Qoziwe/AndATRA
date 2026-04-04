@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const { colors } = useAppTheme();
   const statsQuery = useDashboardStats();
   const categoriesQuery = useCategoryBreakdown("30d");
-  const recentAppealsQuery = useAppeals({ page: 1, pageSize: 5 });
+  const recentAppealsQuery = useAppeals({ page: 1, pageSize: 12 });
 
   if (statsQuery.isLoading || categoriesQuery.isLoading || recentAppealsQuery.isLoading) {
     return <LoadingSpinner label="Собираем оперативную сводку..." />;
@@ -37,6 +37,10 @@ export default function DashboardPage() {
   ) {
     return <ErrorMessage message="Не удалось загрузить данные дашборда." />;
   }
+
+  const visibleRecentAppeals = recentAppealsQuery.data.items
+    .filter((appeal) => appeal.status !== "resolved")
+    .slice(0, 5);
 
   const dashboardSummary = [
     "Оперативный дашборд AndATRA",
@@ -199,7 +203,7 @@ export default function DashboardPage() {
           <CategoryBreakdown data={categoriesQuery.data} />
         </FadeInView>
         <FadeInView delay={270} style={{ minWidth: 320, flex: 0.95 }}>
-          <RecentAppeals appeals={recentAppealsQuery.data.items} />
+          <RecentAppeals appeals={visibleRecentAppeals} />
         </FadeInView>
       </View>
     </View>

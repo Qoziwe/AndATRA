@@ -1,6 +1,13 @@
 import { api, unwrapApiResponse } from "@/services/api";
 import { normalizeBrokenText } from "@/utils/text";
-import type { Appeal, AppealFilters, AppealsResponse, Category, District } from "@/types/appeal";
+import type {
+  Appeal,
+  AppealFilters,
+  AppealsResponse,
+  AppealStatus,
+  Category,
+  District
+} from "@/types/appeal";
 
 interface BackendCategory {
   id: number;
@@ -133,4 +140,14 @@ export const getAppeal = async (id: string): Promise<Appeal> => {
 
   const response = await api.get(`/api/appeals/${numericId}`);
   return mapAppeal(unwrapApiResponse<BackendAppeal>(response));
+};
+
+export const updateAppealStatus = async (id: number, status: AppealStatus): Promise<Appeal> => {
+  const response = await api.patch(`/api/appeals/${id}/status`, { status });
+  return mapAppeal(unwrapApiResponse<BackendAppeal>(response));
+};
+
+export const getMapAppeals = async (): Promise<Appeal[]> => {
+  const response = await api.get("/api/appeals/map");
+  return unwrapApiResponse<BackendAppeal[]>(response).map(mapAppeal);
 };

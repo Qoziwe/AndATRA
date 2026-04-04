@@ -1,17 +1,20 @@
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { STATUS_LABELS } from "@/constants/config";
 import { AppealDetail } from "@/components/appeals/AppealDetail";
 import { ErrorMessage } from "@/components/common/ErrorMessage";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { PageHeader } from "@/components/common/PageHeader";
-import { useAppeal } from "@/hooks/useAppeals";
+import { useAppeal, useUpdateAppealStatus } from "@/hooks/useAppeals";
 import { downloadPdfDocument, downloadTextFile } from "@/services/clientActions";
 import { useFeedbackStore } from "@/stores/feedbackStore";
+import type { AppealStatus } from "@/types/appeal";
 
 export default function AppealDetailPage() {
   const params = useLocalSearchParams<{ id: string }>();
   const pushToast = useFeedbackStore((state) => state.pushToast);
   const query = useAppeal(params.id);
+  const updateStatusMutation = useUpdateAppealStatus();
 
   if (query.isLoading) {
     return <LoadingSpinner label="Открываем карточку обращения..." />;
@@ -26,10 +29,29 @@ export default function AppealDetailPage() {
     query.data.text,
     `Категория: ${query.data.categoryName}`,
     `Район: ${query.data.districtName}`,
-    `Статус: ${query.data.status}`,
+    `Статус: ${STATUS_LABELS[query.data.status]}`,
     `Приоритет: ${query.data.priority}`,
     `Адрес: ${query.data.locationText ?? "Не указан"}`
   ];
+
+  const handleStatusChange = async (status: AppealStatus) => {
+    try {
+      const updatedAppeal = await updateStatusMutation.mutateAsync({
+        id: query.data.id,
+        status
+      });
+
+      pushToast({
+        title: "Статус обновлён",
+        description: `Обращение переведено в статус "${STATUS_LABELS[updatedAppeal.status]}".`
+      });
+    } catch (error) {
+      pushToast({
+        title: "Не удалось изменить статус",
+        description: error instanceof Error ? error.message : "Попробуйте ещё раз."
+      });
+    }
+  };
 
   const handleExportTxt = () => {
     const exported = downloadTextFile(`${query.data.id}.txt`, exportLines.join("\n"));
@@ -80,7 +102,11 @@ export default function AppealDetailPage() {
           { label: "PDF", onPress: handleExportPdf, primary: true }
         ]}
       />
-      <AppealDetail appeal={query.data} />
+      <AppealDetail
+        appeal={query.data}
+        onStatusChange={handleStatusChange}
+        isStatusUpdating={updateStatusMutation.isPending}
+      />
     </View>
   );
 }

@@ -6,18 +6,23 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 export const ChatInput = ({
   onSend,
   disabled,
-  minimal
+  minimal,
+  compact
 }: {
   onSend: (value: string) => Promise<unknown>;
   disabled?: boolean;
   minimal?: boolean;
+  compact?: boolean;
 }) => {
   const [value, setValue] = useState("");
   const { colors } = useAppTheme();
+  const isCompactMinimal = minimal && compact;
 
   return (
     <View
-      className={`${minimal ? "rounded-[30px] p-3" : "rounded-[32px] p-4"} border`}
+      className={`${
+        isCompactMinimal ? "rounded-[26px] p-2.5" : minimal ? "rounded-[30px] p-3" : "rounded-[32px] p-4"
+      } border`}
       style={{ backgroundColor: colors.surface, borderColor: colors.border }}
     >
       <TextInput
@@ -26,7 +31,13 @@ export const ChatInput = ({
         onChangeText={setValue}
         placeholder="Спросите о трендах, районах, обращениях или сформируйте сводку..."
         placeholderTextColor={colors.muted}
-        className={`${minimal ? "min-h-[74px] rounded-[28px]" : "min-h-[120px] rounded-[24px]"} border px-4 py-4 text-sm`}
+        className={`${
+          isCompactMinimal
+            ? "min-h-[56px] max-h-[104px] rounded-[22px] px-3 py-3 text-[13px]"
+            : minimal
+              ? "min-h-[74px] rounded-[28px] px-4 py-4 text-sm"
+              : "min-h-[120px] rounded-[24px] px-4 py-4 text-sm"
+        } border`}
         style={{
           color: colors.text,
           backgroundColor: minimal ? colors.card : colors.surfaceAlt,
@@ -34,8 +45,8 @@ export const ChatInput = ({
           textAlignVertical: "top"
         }}
       />
-      <View className="mt-4 flex-row flex-wrap items-center justify-between gap-3">
-        <Text className="text-xs" style={{ color: colors.muted }}>
+      <View className={`${isCompactMinimal ? "mt-3" : "mt-4"} flex-row flex-wrap items-center justify-between gap-3`}>
+        <Text className={`${isCompactMinimal ? "text-[11px]" : "text-xs"}`} style={{ color: colors.muted }}>
           {minimal
             ? "Короткий запрос, сценарий или вопрос по данным"
             : "Формат как в ChatGPT: короткий вопрос, детальный запрос или сценарий для отчета"}
@@ -50,7 +61,7 @@ export const ChatInput = ({
             setValue("");
             await onSend(nextValue);
           }}
-          className="flex-row items-center gap-2 rounded-full px-5 py-3"
+          className={`flex-row items-center gap-2 rounded-full ${isCompactMinimal ? "px-4 py-2.5" : "px-5 py-3"}`}
           style={{
             backgroundColor: disabled || !value.trim() ? colors.surfaceAlt : colors.primary
           }}

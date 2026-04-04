@@ -1,5 +1,5 @@
 import { PropsWithChildren } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, View, Platform, useWindowDimensions } from "react-native";
 import { usePathname } from "expo-router";
 import { ToastViewport } from "@/components/common/ToastViewport";
 import { Header } from "@/components/layout/Header";
@@ -8,8 +8,12 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 
 export const AppShell = ({ children }: PropsWithChildren) => {
   const pathname = usePathname();
+  const { width } = useWindowDimensions();
   const { colors } = useAppTheme();
-  const disablePageScroll = pathname.startsWith("/chat");
+  const disablePageScroll =
+    Platform.OS === "web" &&
+    ((pathname.startsWith("/chat") && width >= 960) ||
+      (pathname.startsWith("/traffic-ai") && width >= 1100));
 
   return (
     <View className="min-h-screen flex-1 flex-row" style={{ backgroundColor: colors.background }}>

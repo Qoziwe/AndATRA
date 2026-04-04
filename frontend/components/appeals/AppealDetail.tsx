@@ -5,9 +5,19 @@ import { StatusBadge } from "@/components/appeals/StatusBadge";
 import { AppIcon } from "@/components/icons/AppIcon";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { formatDateTime } from "@/utils/format";
-import type { Appeal } from "@/types/appeal";
+import type { Appeal, AppealStatus } from "@/types/appeal";
 
-export const AppealDetail = ({ appeal }: { appeal: Appeal }) => {
+interface AppealDetailProps {
+  appeal: Appeal;
+  onStatusChange: (status: AppealStatus) => void;
+  isStatusUpdating?: boolean;
+}
+
+export const AppealDetail = ({
+  appeal,
+  onStatusChange,
+  isStatusUpdating = false
+}: AppealDetailProps) => {
   const { colors } = useAppTheme();
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -35,6 +45,47 @@ export const AppealDetail = ({ appeal }: { appeal: Appeal }) => {
         <Text className="mt-5 text-base leading-8" style={{ color: colors.textSecondary }}>
           {appeal.text}
         </Text>
+
+        <View className="mt-5 gap-3">
+          <Text className="text-xs font-semibold uppercase tracking-[1.6px]" style={{ color: colors.muted }}>
+            Управление статусом
+          </Text>
+          <View className="flex-row flex-wrap gap-3">
+            <Pressable
+              disabled={isStatusUpdating || appeal.status === "resolved"}
+              onPress={() => onStatusChange("resolved")}
+              className="rounded-full px-4 py-3"
+              style={{
+                backgroundColor: appeal.status === "resolved" ? colors.primary : colors.primarySoft,
+                opacity: isStatusUpdating ? 0.6 : 1
+              }}
+            >
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: appeal.status === "resolved" ? "#FFFFFF" : colors.primary }}
+              >
+                {appeal.status === "resolved" ? "Уже решено" : "Отметить как решённое"}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              disabled={isStatusUpdating || appeal.status === "irrelevant"}
+              onPress={() => onStatusChange("irrelevant")}
+              className="rounded-full px-4 py-3"
+              style={{
+                backgroundColor: appeal.status === "irrelevant" ? colors.textSecondary : colors.surfaceAlt,
+                opacity: isStatusUpdating ? 0.6 : 1
+              }}
+            >
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: appeal.status === "irrelevant" ? "#FFFFFF" : colors.text }}
+              >
+                {appeal.status === "irrelevant" ? "Уже неактуально" : "Отметить как неактуальное"}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
 
         {appeal.photoUrl ? (
           <View className="mt-5">

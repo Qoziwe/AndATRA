@@ -40,7 +40,7 @@ def _check_node(label: str, base_url: str, model: str) -> bool:
         present = _model_matches(model, names)
         print(f"  reachable: yes")
         print(f"  models: {', '.join(sorted(n for n in names if n)) or '(none)'}")
-        print(f"  target model present: {'yes' if present else 'no'}")
+        print(f"  target model present:     {'yes' if present else 'no'}")
         return present
     except requests.RequestException as exc:
         print(f"  reachable: no ({exc})")

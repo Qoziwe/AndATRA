@@ -10,6 +10,7 @@ import { CityMap, type MapLayerMode } from "@/components/map/CityMap";
 import { TOMTOM_TRAFFIC_API_KEY } from "@/constants/config";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useHeatmap } from "@/hooks/useAnalytics";
+import { useMapAppeals } from "@/hooks/useAppeals";
 import { requestElementFullscreen } from "@/services/clientActions";
 import { useFeedbackStore } from "@/stores/feedbackStore";
 
@@ -35,7 +36,8 @@ export default function MapPage() {
   const queryClient = useQueryClient();
   const pushToast = useFeedbackStore((state) => state.pushToast);
   const { colors } = useAppTheme();
-  const query = useHeatmap();
+  const heatmapQuery = useHeatmap();
+  const mapAppealsQuery = useMapAppeals();
   const focusLatitude = params.lat ? Number(params.lat) : NaN;
   const focusLongitude = params.lng ? Number(params.lng) : NaN;
   const focusPoint =
@@ -48,16 +50,16 @@ export default function MapPage() {
         }
       : undefined;
 
-  if (query.isLoading) {
+  if (heatmapQuery.isLoading || mapAppealsQuery.isLoading) {
     return <LoadingSpinner label="Подготавливаем карту города..." />;
   }
 
-  if (query.error || !query.data) {
+  if (heatmapQuery.error || mapAppealsQuery.error || !heatmapQuery.data || !mapAppealsQuery.data) {
     return <ErrorMessage message="Не удалось загрузить карту." />;
   }
 
   const selectedPoint = params.district
-    ? query.data.find((item) => item.districtSlug === params.district)
+    ? heatmapQuery.data.find((item) => item.districtSlug === params.district)
     : undefined;
   const activeLayerLabel =
     layerMode === "traffic"
@@ -78,9 +80,10 @@ export default function MapPage() {
 
   const handleRefresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["analytics-heatmap"] });
+    await queryClient.invalidateQueries({ queryKey: ["appeals-map"] });
     pushToast({
-      title: "Слой карты обновлен",
-      description: "Данные по районам получены заново."
+      title: "Слой карты обновлён",
+      description: "Данные по районам и обращениям получены заново."
     });
   };
 
@@ -88,7 +91,7 @@ export default function MapPage() {
     <View>
       <PageHeader
         title="Карта города"
-        subtitle="Пространственный обзор по обращениям и активным районам"
+        subtitle="Пространственный обзор по обращениям, адресам и активным районам"
         actions={[
           { label: "Полный экран", onPress: handleFullscreen },
           { label: "Обновить", onPress: handleRefresh, primary: true }
@@ -129,8 +132,7 @@ export default function MapPage() {
           </View>
 
           <Text className="text-sm leading-6" style={{ color: colors.muted }}>
-            Активный режим: {activeLayerLabel}. Радиус маркера зависит от количества обращений, цвет показывает
-            интенсивность.
+            Активный режим: {activeLayerLabel}. На карте теперь отображаются сами обращения с адресом, а если точных координат нет, точка ставится приблизительно по району или по центру города.
           </Text>
 
           {!trafficEnabled ? (
@@ -159,7 +161,8 @@ export default function MapPage() {
 
       <FadeInView delay={120}>
         <CityMap
-          points={query.data}
+          points={heatmapQuery.data}
+          appeals={mapAppealsQuery.data}
           layerMode={layerMode}
           selectedDistrictSlug={params.district}
           focusPoint={focusPoint}

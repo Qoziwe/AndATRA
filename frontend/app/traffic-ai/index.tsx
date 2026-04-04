@@ -1,4 +1,4 @@
-import { View, ScrollView, Text } from "react-native";
+import { View, ScrollView, Text, Platform, type ViewStyle, useWindowDimensions } from "react-native";
 import { TrafficRecommendationCard } from "@/components/traffic-ai/TrafficRecommendationCard";
 import { TrafficChatPanel } from "@/components/traffic-ai/TrafficChatPanel";
 import { ErrorMessage } from "@/components/common/ErrorMessage";
@@ -12,9 +12,11 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export default function TrafficAiPage() {
   const { colors } = useAppTheme();
+  const { width } = useWindowDimensions();
   const query = useTrafficRecommendations();
   const queryClient = useQueryClient();
   const pushToast = useFeedbackStore((state) => state.pushToast);
+  const isDesktopLayout = Platform.OS === "web" && width >= 1100;
 
   const handleRefresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["traffic-recommendations"] });
@@ -32,12 +34,17 @@ export default function TrafficAiPage() {
   };
 
   const recommendations = query.data?.recommendations || [];
+  const stickyChatStyle: ViewStyle | undefined =
+    isDesktopLayout
+      ? (({ position: "sticky", top: 20 } as unknown) as ViewStyle)
+      : undefined;
 
   return (
     <View className="min-h-0 flex-1">
       <PageHeader
         title="ИИ-анализ пробок и светофоров"
         subtitle="Загрузка данных и анализ фаз светофоров по ключевым перекрёсткам Алматы через TomTom Traffic API. Обновляется каждые 2 минуты."
+        compact={isDesktopLayout}
         actions={[
           { label: "Обновить данные", onPress: handleRefresh, primary: true },
         ]}
@@ -50,21 +57,25 @@ export default function TrafficAiPage() {
       ) : recommendations.length === 0 ? (
         <ErrorMessage message="Рекомендаций пока нет." />
       ) : (
-        <View className="min-h-0 flex-1 flex-row flex-wrap justify-between gap-5 mt-2">
+        <View
+          className={`min-h-0 flex-1 ${
+            isDesktopLayout ? "mt-1 flex-row items-stretch justify-between gap-4" : "mt-2 gap-4"
+          }`}
+        >
           {/* Левая колонка с карточками перекрёстков (50% ширины) */}
-          <FadeInView delay={60} style={{ flex: 1, minWidth: 400 }}>
-            <View className="flex-row items-center justify-between mb-4 mx-1">
-              <Text className="text-xl font-bold" style={{ color: colors.text }}>
+          <FadeInView delay={60} style={isDesktopLayout ? { flex: 1, minWidth: 0, minHeight: 0 } : undefined}>
+            <View className="mx-1 mb-3 flex-row items-center justify-between">
+              <Text className="text-[18px] font-bold" style={{ color: colors.text }}>
                 Рекомендации
               </Text>
-              <Text className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+              <Text className="text-[13px] font-medium" style={{ color: colors.textSecondary }}>
                 {recommendations.length} перекрестков
               </Text>
             </View>
             <ScrollView
-              className="flex-1"
+              className={isDesktopLayout ? "flex-1" : undefined}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 30 }}
+              contentContainerStyle={{ paddingBottom: isDesktopLayout ? 24 : 16 }}
             >
               {recommendations.map((rec) => (
                 <TrafficRecommendationCard
@@ -77,7 +88,16 @@ export default function TrafficAiPage() {
           </FadeInView>
 
           {/* Правая колонка с чатом (50% ширины) */}
-          <FadeInView delay={100} style={{ flex: 1, minWidth: 380 }}>
+          <FadeInView
+            delay={100}
+            style={{
+              width: "100%",
+              flexBasis: isDesktopLayout ? 410 : undefined,
+              maxWidth: isDesktopLayout ? 440 : undefined,
+              minHeight: isDesktopLayout ? 0 : undefined,
+              ...stickyChatStyle,
+            }}
+          >
             <TrafficChatPanel recommendations={recommendations} />
           </FadeInView>
         </View>

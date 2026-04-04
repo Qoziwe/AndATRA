@@ -69,10 +69,37 @@ def list_appeals():
     })
 
 
+@appeals_bp.route("/appeals/map", methods=["GET"])
+def list_map_appeals():
+    """Get all appeals that can be shown on the map."""
+    appeals = appeal_service.get_map_appeals()
+    return success_response([a.to_dict() for a in appeals])
+
+
 @appeals_bp.route("/appeals/<int:appeal_id>", methods=["GET"])
 def get_appeal(appeal_id):
     """Get a single appeal by ID."""
     appeal = appeal_service.get_appeal_by_id(appeal_id)
     if not appeal:
         return error_response("Appeal not found", 404)
+    return success_response(appeal.to_dict())
+
+
+@appeals_bp.route("/appeals/<int:appeal_id>/status", methods=["PATCH"])
+def update_appeal_status(appeal_id):
+    """Update an appeal status manually."""
+    data = request.get_json(silent=True) or {}
+    status = data.get("status")
+
+    if not status or not str(status).strip():
+        return error_response("Missing required field: status", 400)
+
+    try:
+        appeal = appeal_service.update_appeal_status(appeal_id, str(status))
+    except ValueError as exc:
+        return error_response(str(exc), 400)
+
+    if not appeal:
+        return error_response("Appeal not found", 404)
+
     return success_response(appeal.to_dict())

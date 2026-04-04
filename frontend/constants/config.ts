@@ -34,7 +34,8 @@ export const STATUS_LABELS = {
   new: "Новый",
   processing: "В работе",
   resolved: "Решён",
-  rejected: "Отклонён"
+  rejected: "Отклонён",
+  irrelevant: "Неактуально"
 } as const;
 
 export const PRIORITY_LABELS = {

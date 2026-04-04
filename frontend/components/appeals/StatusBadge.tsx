@@ -7,7 +7,8 @@ const colors: Record<AppealStatus, string> = {
   new: "rgba(37, 99, 235, 0.16)",
   processing: "rgba(245, 158, 11, 0.18)",
   resolved: "rgba(34, 197, 94, 0.16)",
-  rejected: "rgba(239, 68, 68, 0.16)"
+  rejected: "rgba(239, 68, 68, 0.16)",
+  irrelevant: "rgba(100, 116, 139, 0.18)"
 };
 
 export const StatusBadge = ({ status }: { status: AppealStatus }) => {

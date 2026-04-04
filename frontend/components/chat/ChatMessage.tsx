@@ -10,7 +10,13 @@ const attachmentDescriptions: Record<ChatAttachment["kind"], string> = {
   pdf: "Документ для печати, отправки и презентации руководству"
 };
 
-export const ChatMessage = ({ message }: { message: ChatMessageType }) => {
+export const ChatMessage = ({
+  message,
+  compact,
+}: {
+  message: ChatMessageType;
+  compact?: boolean;
+}) => {
   const { colors } = useAppTheme();
   const pushToast = useFeedbackStore((state) => state.pushToast);
   const isUser = message.role === "user";
@@ -34,7 +40,9 @@ export const ChatMessage = ({ message }: { message: ChatMessageType }) => {
 
   return (
     <View
-      className={`max-w-[86%] rounded-[28px] px-4 py-4 ${
+      className={`${
+        compact ? "max-w-[92%] rounded-[22px] px-3 py-3" : "max-w-[86%] rounded-[28px] px-4 py-4"
+      } ${
         isUser ? "self-end" : isSystem ? "self-center" : "self-start"
       }`}
       style={{
@@ -48,14 +56,14 @@ export const ChatMessage = ({ message }: { message: ChatMessageType }) => {
       }}
     >
       {!isUser ? (
-        <View className="mb-3 flex-row items-center gap-2">
+        <View className={`${compact ? "mb-2" : "mb-3"} flex-row items-center gap-2`}>
           <AppIcon
             name={isSystem ? "spark" : "chat"}
-            size={16}
+            size={compact ? 14 : 16}
             color={isSystem ? colors.primary : colors.text}
           />
           <Text
-            className="text-xs font-semibold uppercase tracking-[1.5px]"
+            className={`${compact ? "text-[10px] tracking-[1.2px]" : "text-xs tracking-[1.5px]"} font-semibold uppercase`}
             style={{ color: isSystem ? colors.primary : colors.muted }}
           >
             {isSystem ? "Система" : "Ассистент"}
@@ -64,7 +72,7 @@ export const ChatMessage = ({ message }: { message: ChatMessageType }) => {
       ) : null}
 
       <Text
-        className="text-sm leading-7"
+        className={`${compact ? "text-[13px] leading-6" : "text-sm leading-7"}`}
         style={{ color: isUser ? "#FFFFFF" : colors.textSecondary }}
       >
         {message.content}
@@ -140,7 +148,7 @@ export const ChatMessage = ({ message }: { message: ChatMessageType }) => {
       ) : null}
 
       <Text
-        className="mt-3 text-[11px]"
+        className={`${compact ? "mt-2 text-[10px]" : "mt-3 text-[11px]"}`}
         style={{ color: isUser ? "rgba(255,255,255,0.76)" : colors.muted }}
       >
         {message.createdAt.slice(11, 16)}

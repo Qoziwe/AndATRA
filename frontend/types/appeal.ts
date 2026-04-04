@@ -1,4 +1,4 @@
-export type AppealStatus = "new" | "processing" | "resolved" | "rejected";
+export type AppealStatus = "new" | "processing" | "resolved" | "rejected" | "irrelevant";
 export type AppealPriority = "low" | "medium" | "high" | "critical";
 
 export interface District {

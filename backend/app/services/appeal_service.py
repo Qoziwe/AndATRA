@@ -14,6 +14,8 @@ from app.services.classification_service import analyze_intake, apply_assessment
 
 logger = logging.getLogger(__name__)
 
+VALID_APPEAL_STATUSES = {"new", "processing", "resolved", "rejected", "irrelevant"}
+
 
 class AppealRejectedError(ValueError):
     """Raised when AI moderation rejects an intake submission."""
@@ -117,3 +119,35 @@ def get_appeals(filters: dict) -> tuple[list[Appeal], int]:
 def get_appeal_by_id(appeal_id: int) -> Appeal | None:
     """Get a single appeal by ID."""
     return db.session.get(Appeal, appeal_id)
+
+
+def get_map_appeals() -> list[Appeal]:
+    """Return appeals that have a human-readable address for map rendering."""
+    return (
+        Appeal.query
+        .filter(Appeal.location_text.isnot(None), Appeal.location_text != "")
+        .order_by(Appeal.created_at.desc())
+        .all()
+    )
+
+
+def update_appeal_status(appeal_id: int, status: str) -> Appeal | None:
+    """Update the status of an existing appeal."""
+    normalized_status = (status or "").strip().lower()
+    if normalized_status not in VALID_APPEAL_STATUSES:
+        allowed_statuses = ", ".join(sorted(VALID_APPEAL_STATUSES))
+        raise ValueError(f"Invalid status '{status}'. Allowed values: {allowed_statuses}")
+
+    appeal = db.session.get(Appeal, appeal_id)
+    if not appeal:
+        return None
+
+    appeal.status = normalized_status
+    db.session.commit()
+
+    socketio.emit(
+        "appeal_updated",
+        {"id": appeal.id, "status": appeal.status},
+        namespace="/ws/updates",
+    )
+    return appeal

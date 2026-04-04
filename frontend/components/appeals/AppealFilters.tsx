@@ -20,7 +20,8 @@ const statusOptions = [
   { label: "Новый", value: "new" },
   { label: "В работе", value: "processing" },
   { label: "Решен", value: "resolved" },
-  { label: "Отклонен", value: "rejected" }
+  { label: "Отклонен", value: "rejected" },
+  { label: "Неактуально", value: "irrelevant" }
 ];
 
 const priorityOptions = [
