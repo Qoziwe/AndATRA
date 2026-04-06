@@ -29,8 +29,38 @@ REPORT_KEYWORDS = (
 
 def handle_chat(message: str, history: list[dict] | None = None) -> dict:
     """Process a chat message with DB-enriched context."""
+    llm_enabled = llm_service.is_llm_enabled()
     context = _build_context()
     wants_report = _wants_report(message)
+
+    if not llm_enabled:
+        response = "LLM модели отключены."
+        attachments: list[dict] = []
+        assistant_log = ChatLog(role="assistant", content=response)
+        try:
+            user_log = ChatLog(
+                role="user",
+                content=message,
+                context_snapshot={"context_length": len(context), "attachments": 0},
+            )
+            db.session.add(user_log)
+            db.session.add(assistant_log)
+            db.session.commit()
+        except Exception as exc:
+            logger.error("Failed to save chat log: %s", exc)
+            db.session.rollback()
+
+        return {
+            "id": assistant_log.id if assistant_log.id else None,
+            "role": "assistant",
+            "content": response,
+            "created_at": (
+                assistant_log.created_at.isoformat()
+                if assistant_log.created_at
+                else datetime.now(timezone.utc).isoformat()
+            ),
+            "attachments": attachments,
+        }
 
     system_prompt = _build_system_prompt(context, wants_report)
     prompt_parts = []

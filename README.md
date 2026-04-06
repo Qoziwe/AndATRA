@@ -66,7 +66,7 @@ AndATRA is designed around one continuous workflow:
 | Backend | Flask, Flask-SocketIO, Flask-SQLAlchemy, SQLAlchemy, Alembic |
 | Bot | python-telegram-bot, aiohttp |
 | Data | PostgreSQL |
-| AI | Ollama-compatible local/LAN nodes, mock mode |
+| AI | Ollama-compatible local/LAN nodes with optional LLM disable switch |
 | Testing | pytest, pytest-flask, pytest-asyncio |
 
 ## Repository Structure
@@ -109,7 +109,7 @@ AndATRA/
 
 If you want the fastest working demo:
 
-- run the backend with `LLM_MOCK_MODE=true`
+- run the backend with `ENABLE_LLM=false`
 - initialize and seed the PostgreSQL database
 - open the frontend in web mode
 - treat the Telegram bot as optional
@@ -161,8 +161,7 @@ LLM_VISION_URL=http://localhost:11434
 LLM_PRIMARY_MODEL=llama3
 LLM_CLASSIFY_MODEL=mistral
 LLM_VISION_MODEL=llava
-LLM_VISION_ENABLED=true
-LLM_MOCK_MODE=true
+ENABLE_LLM=false
 
 GEOCODING_ENABLED=true
 TELEGRAM_BOT_SECRET=shared_secret_token_here
@@ -273,19 +272,19 @@ python -m bot.main
 
 ## AI Runtime Modes
 
-### Mock mode
+### LLM disabled
 
-Use mock mode when you want predictable local behavior and no dependency on Ollama:
+Use disabled mode when you want the site to work without any LLM infrastructure:
 
-- `LLM_MOCK_MODE=true`
-- canned responses for primary chat, intake analysis, classification, and vision analysis
-- best option for UI work, demos, and smoke testing
+- `ENABLE_LLM=false`
+- chat endpoints immediately return `LLM модели отключены.`
+- Telegram intake skips AI moderation and accepts submissions without LLM checks
 
-### Ollama mode
+### LLM enabled
 
 Use live model calls when you want actual AI behavior:
 
-- set `LLM_MOCK_MODE=false`
+- set `ENABLE_LLM=true`
 - configure `LLM_PRIMARY_*`, `LLM_CLASSIFY_*`, and `LLM_VISION_*`
 - classification falls back to the primary node if needed
 

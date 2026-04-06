@@ -135,6 +135,7 @@ class TestAppealIntake:
     def test_intake_rejects_joke_image_even_with_serious_text(self, client, app):
         """Serious text should still be rejected when the attached image is a joke."""
         with app.app_context():
+            app.config["ENABLE_LLM"] = True
             before_count = Appeal.query.count()
 
         with patch(
@@ -170,11 +171,12 @@ class TestAppealIntake:
 
         with app.app_context():
             assert Appeal.query.count() == before_count
+            app.config["ENABLE_LLM"] = False
 
-    def test_intake_skips_vision_when_disabled(self, client, app):
-        """Photo analysis should be skipped entirely when vision is disabled."""
+    def test_intake_skips_vision_when_llm_disabled(self, client, app):
+        """Photo analysis should be skipped entirely when LLM is disabled."""
         with app.app_context():
-            app.config["LLM_VISION_ENABLED"] = False
+            app.config["ENABLE_LLM"] = False
 
         try:
             with patch(
@@ -202,7 +204,26 @@ class TestAppealIntake:
             mock_vision.assert_not_called()
         finally:
             with app.app_context():
-                app.config["LLM_VISION_ENABLED"] = True
+                app.config["ENABLE_LLM"] = False
+
+    def test_intake_accepts_without_ai_moderation_when_llm_disabled(self, client):
+        """When LLM is disabled, intake should accept submissions without AI moderation."""
+        resp = client.post(
+            "/api/appeals/intake",
+            json={
+                "telegram_id": 123456,
+                "text": "Это тестовое сообщение без реальной проверки.",
+                "category_slug": "transport",
+                "photo_base64": "ZmFrZV9pbWFnZQ==",
+            },
+            headers={"X-Bot-Secret": "test_secret"},
+        )
+
+        assert resp.status_code == 201
+        data = resp.get_json()["data"]
+        assert data["status"] == "new"
+        assert data["category"]["slug"] == "transport"
+        assert data["ai_summary"] == "LLM модели отключены. Обращение сохранено без AI-модерации."
 
     def test_intake_invalid_secret(self, client):
         """POST with wrong X-Bot-Secret returns 403."""

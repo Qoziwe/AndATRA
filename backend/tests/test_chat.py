@@ -9,8 +9,11 @@ class TestChatEndpoint:
     """Tests for POST /api/chat."""
 
     @patch("app.services.chat_service.llm_service.call_primary")
-    def test_chat_returns_response(self, mock_primary, client):
+    def test_chat_returns_response(self, mock_primary, client, app):
         """POST /api/chat with a message returns 200 with assistant response."""
+        with app.app_context():
+            app.config["ENABLE_LLM"] = True
+
         mock_primary.return_value = "Тестовый ответ ассистента"
 
         resp = client.post(
@@ -26,8 +29,11 @@ class TestChatEndpoint:
         assert data["data"]["attachments"] == []
 
     @patch("app.services.chat_service.llm_service.call_primary")
-    def test_chat_with_history(self, mock_primary, client):
+    def test_chat_with_history(self, mock_primary, client, app):
         """POST /api/chat with message + history array returns 200."""
+        with app.app_context():
+            app.config["ENABLE_LLM"] = True
+
         mock_primary.return_value = "Ответ с учётом контекста"
 
         resp = client.post(
@@ -46,8 +52,11 @@ class TestChatEndpoint:
         assert data["data"]["role"] == "assistant"
 
     @patch("app.services.chat_service.llm_service.call_primary")
-    def test_chat_builds_export_attachments_for_report_request(self, mock_primary, client):
+    def test_chat_builds_export_attachments_for_report_request(self, mock_primary, client, app):
         """Requests for report export return TXT and PDF attachments metadata."""
+        with app.app_context():
+            app.config["ENABLE_LLM"] = True
+
         mock_primary.return_value = "Полная сводка по обращениям за неделю."
 
         resp = client.post(
@@ -63,8 +72,11 @@ class TestChatEndpoint:
         assert all(item["content"] == data["content"] for item in data["attachments"])
 
     @patch("app.services.chat_service.llm_service.call_primary")
-    def test_chat_uses_generated_report_title_and_cleans_markdown(self, mock_primary, client):
+    def test_chat_uses_generated_report_title_and_cleans_markdown(self, mock_primary, client, app):
         """Report export uses a cleaned assistant title instead of the user prompt."""
+        with app.app_context():
+            app.config["ENABLE_LLM"] = True
+
         mock_primary.return_value = (
             "**Еженедельная сводка по обращениям**\n\n"
             "**Обзор**\n"
@@ -94,8 +106,11 @@ class TestChatEndpoint:
         assert data["success"] is False
 
     @patch("app.services.chat_service.llm_service.call_primary")
-    def test_chat_reports_unavailable_llm(self, mock_primary, client):
+    def test_chat_reports_unavailable_llm(self, mock_primary, client, app):
         """POST /api/chat returns a clear message when the chat LLM is unavailable."""
+        with app.app_context():
+            app.config["ENABLE_LLM"] = True
+
         mock_primary.side_effect = requests.ConnectionError("LLM node is offline")
 
         resp = client.post(
@@ -108,3 +123,16 @@ class TestChatEndpoint:
         assert data["success"] is True
         assert data["data"]["role"] == "assistant"
         assert "нет связи с нейросетью чата" in data["data"]["content"].lower()
+
+    def test_chat_reports_disabled_llm(self, client):
+        """POST /api/chat returns an explicit disabled message when LLM is turned off."""
+        resp = client.post(
+            "/api/chat",
+            json={"message": "Покажи сводку"},
+        )
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["success"] is True
+        assert data["data"]["content"] == "LLM модели отключены."
+        assert data["data"]["attachments"] == []

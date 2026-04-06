@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 
 import requests
@@ -14,44 +13,9 @@ SESSION = requests.Session()
 SESSION.trust_env = False
 _MODEL_NAME_CACHE: dict[tuple[str, str], str] = {}
 
-MOCK_CLASSIFY_RESPONSE = json.dumps(
-    {
-        "category": "transport",
-        "priority": "medium",
-        "tags": ["дорога", "яма"],
-        "district_hint": None,
-        "summary": "Обращение связано с проблемой на дорожном участке и требует проверки профильной службой.",
-    }
-)
 
-MOCK_INTAKE_ANALYSIS_RESPONSE = json.dumps(
-    {
-        "accepted": True,
-        "rejection_reason": None,
-        "category": "transport",
-        "priority": "medium",
-        "tags": ["дорога", "яма"],
-        "district_hint": None,
-        "summary": "Обращение описывает городскую проблему на дорожном участке.",
-        "confidence": 0.89,
-    }
-)
-
-MOCK_VISION_ANALYSIS_RESPONSE = json.dumps(
-    {
-        "supports_report": True,
-        "is_relevant": True,
-        "is_joke_or_meme": False,
-        "rejection_reason": None,
-        "visual_summary": "На фото виден реальный городской объект, изображение похоже на уместное доказательство проблемы.",
-        "confidence": 0.84,
-    }
-)
-
-MOCK_PRIMARY_RESPONSE = (
-    "Ассистент: на основе данных вижу рост обращений. "
-    "Могу уточнить по категориям, районам и приоритетам."
-)
+class LLMDisabledError(RuntimeError):
+    """Raised when LLM-backed features are disabled by configuration."""
 
 
 def _model_matches(requested: str, available: str) -> bool:
@@ -78,6 +42,16 @@ def _get_config(name: str, default):
         return current_app.config.get(name, default)
     except RuntimeError:
         return default
+
+
+def is_llm_enabled() -> bool:
+    """Return whether LLM-backed features are enabled."""
+    return bool(_get_config("ENABLE_LLM", True))
+
+
+def _require_llm_enabled() -> None:
+    if not is_llm_enabled():
+        raise LLMDisabledError("LLM models are disabled.")
 
 
 def _resolve_model_name(base_url: str, requested_model: str) -> str:
@@ -198,19 +172,9 @@ def _call_with_fallback(
         )
 
 
-def _is_mock_mode() -> bool:
-    """Check if mock mode is enabled both inside and outside app context."""
-    try:
-        return current_app.config.get("LLM_MOCK_MODE", False)
-    except RuntimeError:
-        return False
-
-
 def call_primary(prompt: str, system_prompt: str | None = None) -> str:
     """Call the primary LLM node for general chat."""
-    if _is_mock_mode():
-        logger.info("LLM mock mode: returning canned primary response")
-        return MOCK_PRIMARY_RESPONSE
+    _require_llm_enabled()
 
     url = current_app.config["LLM_PRIMARY_URL"]
     model = current_app.config["LLM_PRIMARY_MODEL"]
@@ -225,9 +189,7 @@ def call_primary(prompt: str, system_prompt: str | None = None) -> str:
 
 def call_classify(prompt: str) -> str:
     """Call the classification node and fall back to the primary node."""
-    if _is_mock_mode():
-        logger.info("LLM mock mode: returning canned classify response")
-        return MOCK_CLASSIFY_RESPONSE
+    _require_llm_enabled()
 
     return _call_with_fallback(
         current_app.config["LLM_CLASSIFY_URL"],
@@ -243,9 +205,7 @@ def call_classify(prompt: str) -> str:
 
 def call_intake_analysis(prompt: str, system_prompt: str | None = None) -> str:
     """Run high-accuracy intake analysis on the primary node with classify fallback."""
-    if _is_mock_mode():
-        logger.info("LLM mock mode: returning canned intake analysis response")
-        return MOCK_INTAKE_ANALYSIS_RESPONSE
+    _require_llm_enabled()
 
     return _call_with_fallback(
         current_app.config["LLM_PRIMARY_URL"],
@@ -266,9 +226,7 @@ def call_vision_analysis(
     system_prompt: str | None = None,
 ) -> str:
     """Run multimodal analysis for appeal photos."""
-    if _is_mock_mode():
-        logger.info("LLM mock mode: returning canned vision analysis response")
-        return MOCK_VISION_ANALYSIS_RESPONSE
+    _require_llm_enabled()
 
     return _call_ollama(
         current_app.config["LLM_VISION_URL"],

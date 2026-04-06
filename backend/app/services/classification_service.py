@@ -75,6 +75,17 @@ def analyze_intake(
     photo_base64: str | None = None,
 ) -> IntakeAssessment:
     """Moderate and classify an appeal before it is stored."""
+    if not llm_service.is_llm_enabled():
+        return IntakeAssessment(
+            accepted=True,
+            category_slug=submitted_category_slug,
+            priority="medium",
+            tags=[],
+            district_hint=None,
+            summary="LLM модели отключены. Обращение сохранено без AI-модерации.",
+            confidence=None,
+        )
+
     obvious_rejection = _detect_obvious_rejection(text)
     if obvious_rejection:
         return IntakeAssessment(
@@ -97,7 +108,7 @@ def analyze_intake(
         logger.warning("LLM intake analysis failed, using heuristic fallback: %s", exc)
         assessment = _heuristic_assessment(text, submitted_category_slug)
 
-    if photo_base64 and current_app.config.get("LLM_VISION_ENABLED", True):
+    if photo_base64 and llm_service.is_llm_enabled():
         photo_assessment = _analyze_photo(
             text=text,
             submitted_category_slug=submitted_category_slug,
@@ -107,7 +118,7 @@ def analyze_intake(
         if photo_assessment:
             _apply_photo_assessment(assessment, photo_assessment)
     elif photo_base64:
-        logger.info("Vision analysis skipped because LLM_VISION_ENABLED=false")
+        logger.info("Vision analysis skipped because ENABLE_LLM=false")
 
     return assessment
 
@@ -171,6 +182,10 @@ def _analyze_photo(
     location_text: str | None,
     photo_base64: str,
 ) -> PhotoAssessment | None:
+    if not llm_service.is_llm_enabled():
+        logger.info("Vision analysis skipped because ENABLE_LLM=false")
+        return None
+
     prompt = _build_photo_prompt(text, submitted_category_slug, location_text)
 
     try:

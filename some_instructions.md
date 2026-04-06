@@ -12,7 +12,7 @@
 - проект больше не опирается на отдельную `summary`-ноду
 - основная аналитика считается backend-сервисами на Python и SQLAlchemy
 - актуальные LLM-роли сейчас: `primary`, `classify`, `vision`
-- для локальной разработки удобнее всего запускать проект с `LLM_MOCK_MODE=true`
+- для локальной разработки без LLM удобнее всего запускать проект с `ENABLE_LLM=false`
 - `python -m app.data.seed` полезен для демо, потому что добавляет тестовые обращения
 - `AUTO_SEED_REFERENCE_DATA=true` автоматически поднимает категории и районы
 
@@ -51,8 +51,7 @@ LLM_VISION_URL=http://localhost:11434
 LLM_PRIMARY_MODEL=llama3
 LLM_CLASSIFY_MODEL=mistral
 LLM_VISION_MODEL=llava
-LLM_VISION_ENABLED=true
-LLM_MOCK_MODE=true
+ENABLE_LLM=false
 
 GEOCODING_ENABLED=true
 GEOCODING_REVERSE_URL=https://nominatim.openstreetmap.org/reverse
@@ -165,7 +164,7 @@ python scripts\check_llm_nodes.py
 
 ## Замечания по конфигу
 
-- если нужен стабильный локальный запуск, оставляй `LLM_MOCK_MODE=true`
+- если нужен стабильный локальный запуск без нейросетей, оставляй `ENABLE_LLM=false`
 - если включаешь живые модели, проверь `LLM_PRIMARY_*`, `LLM_CLASSIFY_*` и `LLM_VISION_*`
 - `LLM_SUMMARY_*` для текущей версии не нужны
 - air quality страница может работать без API key

@@ -48,15 +48,12 @@ class Config:
     LLM_PRIMARY_MODEL = os.getenv("LLM_PRIMARY_MODEL", "llama3")
     LLM_CLASSIFY_MODEL = os.getenv("LLM_CLASSIFY_MODEL", "mistral")
     LLM_VISION_MODEL = os.getenv("LLM_VISION_MODEL", "llava")
-    LLM_VISION_ENABLED = os.getenv("LLM_VISION_ENABLED", "true").lower() == "true"
+    ENABLE_LLM = os.getenv("ENABLE_LLM", "true").lower() == "true"
     LLM_MODEL_RESOLUTION_TIMEOUT = float(os.getenv("LLM_MODEL_RESOLUTION_TIMEOUT", "2"))
     LLM_PRIMARY_TIMEOUT = float(os.getenv("LLM_PRIMARY_TIMEOUT", "45"))
     LLM_CLASSIFY_TIMEOUT = float(os.getenv("LLM_CLASSIFY_TIMEOUT", "15"))
     LLM_INTAKE_TIMEOUT = float(os.getenv("LLM_INTAKE_TIMEOUT", "10"))
     LLM_VISION_TIMEOUT = float(os.getenv("LLM_VISION_TIMEOUT", "10"))
-
-    # Mock mode for development without GPU/Ollama
-    LLM_MOCK_MODE = os.getenv("LLM_MOCK_MODE", "false").lower() == "true"
     
     # Optional Gemini Fallback
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
@@ -82,6 +79,5 @@ class TestConfig(Config):
         os.getenv("TEST_DATABASE_URL", "sqlite+pysqlite:///:memory:")
     )
     SQLALCHEMY_ENGINE_OPTIONS = build_engine_options(SQLALCHEMY_DATABASE_URI)
-    LLM_MOCK_MODE = True
-    LLM_VISION_ENABLED = True
+    ENABLE_LLM = False
     TELEGRAM_BOT_SECRET = "test_secret"
