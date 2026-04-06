@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: andatra-telegram-bot
+    env: python
+    region: frankfurt # or your preferred region
+    plan: free # or starter
+    rootDir: telegram
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python -m bot.main"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0 # Or whichever recent version you are using
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false # Must be provided in dashboard
+      - key: BACKEND_URL
+        value: https://andatra-backend.onrender.com # Change to your actual backend URL
+      - key: BOT_SECRET
+        sync: false # Must match TELEGRAM_BOT_SECRET on backend
+      # Optional: set WEBHOOK_URL instead of using polling
+      # - key: WEBHOOK_URL
+      #   value: https://andatra-telegram-bot.onrender.com

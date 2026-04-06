@@ -2,6 +2,9 @@
 
 import asyncio
 import logging
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 
@@ -27,8 +30,27 @@ def _ensure_event_loop() -> None:
         asyncio.set_event_loop(asyncio.new_event_loop())
 
 
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    """Simple HTTP server to answer Render health checks."""
+    
+    def do_GET(self) -> None:
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"OK")
+        
+    def log_message(self, format: str, *args) -> None:
+        pass  # Suppress health check logs
+
+def start_health_server(port: int) -> None:
+    """Start the health check HTTP server in a background thread."""
+    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
+    logger.info("Starting health check server on port %s", port)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+
+
 def main() -> None:
-    """Build the application and start polling."""
+    """Build the application and start polling or webhooks."""
     logger.info("Starting AndATRA Telegram bot")
     _ensure_event_loop()
 
@@ -40,8 +62,21 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.Regex(f"^{HELP_BUTTON}$"), help_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, fallback))
 
-    logger.info("Bot is running. Press Ctrl+C to stop.")
-    app.run_polling(drop_pending_updates=True)
+    port = int(os.environ.get("PORT", "8000"))
+    webhook_url = os.environ.get("WEBHOOK_URL", "").strip()
+
+    if webhook_url:
+        logger.info("Starting webhook on port %s with URL %s", port, webhook_url)
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            webhook_url=webhook_url,
+            drop_pending_updates=True,
+        )
+    else:
+        logger.info("Bot is running in polling mode. Press Ctrl+C to stop.")
+        start_health_server(port)
+        app.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
