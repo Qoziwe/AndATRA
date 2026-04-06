@@ -12,7 +12,7 @@ class ChatLog(db.Model):
     role = db.Column(db.String(20), nullable=False)
     content = db.Column(db.Text, nullable=False)
     context_snapshot = db.Column(db.JSON, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {

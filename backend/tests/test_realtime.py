@@ -10,11 +10,7 @@ from app.extensions import db, socketio
 @pytest.fixture(scope="module")
 def socketio_app():
     """Create a separate app instance for SocketIO testing."""
-
-    class _TestConfig(TestConfig):
-        SQLALCHEMY_ENGINE_OPTIONS = {"connect_args": {"check_same_thread": False}}
-
-    app = create_app(_TestConfig)
+    app = create_app(TestConfig)
     with app.app_context():
         db.create_all()
         from app.data.seed import seed_categories, seed_districts

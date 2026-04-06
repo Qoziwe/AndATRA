@@ -33,7 +33,7 @@ AndATRA is designed around one continuous workflow:
 ### Backend
 
 - Flask application factory
-- SQLite + SQLAlchemy models
+- PostgreSQL + SQLAlchemy models
 - Alembic migrations
 - Appeal intake and appeal listing/detail endpoints
 - Categories and districts reference endpoints
@@ -65,7 +65,7 @@ AndATRA is designed around one continuous workflow:
 | Frontend | Expo Router, React Native Web, TypeScript, NativeWind, TanStack Query, Zustand, Leaflet |
 | Backend | Flask, Flask-SocketIO, Flask-SQLAlchemy, SQLAlchemy, Alembic |
 | Bot | python-telegram-bot, aiohttp |
-| Data | SQLite |
+| Data | PostgreSQL |
 | AI | Ollama-compatible local/LAN nodes, mock mode |
 | Testing | pytest, pytest-flask, pytest-asyncio |
 
@@ -110,7 +110,7 @@ AndATRA/
 If you want the fastest working demo:
 
 - run the backend with `LLM_MOCK_MODE=true`
-- seed the local database
+- initialize and seed the PostgreSQL database
 - open the frontend in web mode
 - treat the Telegram bot as optional
 
@@ -147,7 +147,7 @@ Copy-Item frontend\.env.example frontend\.env
 
 ```env
 FLASK_SECRET_KEY=change_this_secret
-DATABASE_URL=sqlite:///andatra.db
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/andatra
 APP_HOST=0.0.0.0
 APP_PORT=5000
 FLASK_DEBUG=false
@@ -196,7 +196,7 @@ python -m app.data.seed
 
 Notes:
 
-- the backend also creates tables automatically at startup
+- run `alembic upgrade head` before the first backend start or after schema changes
 - `AUTO_SEED_REFERENCE_DATA=true` fills required reference dictionaries
 - `python -m app.data.seed` is useful when you want demo appeals in the database
 
@@ -316,14 +316,14 @@ python -m pytest
 
 - The current seeded content and UI copy are focused on Almaty.
 - Parts of the interface are in Russian.
-- SQLite is used for the MVP and local development.
+- PostgreSQL is the primary backend database.
+- Backend tests still use isolated in-memory SQLite for fast local runs.
 - Telegram polling supports one active process per token.
 - Air quality data comes from Open-Meteo.
 - Traffic overlays and traffic analysis depend on TomTom-based frontend configuration and backend traffic services.
 
 ## Roadmap Ideas
 
-- PostgreSQL instead of SQLite
 - background job queue for classification and notifications
 - authentication and role-based access control
 - richer audit logs and observability

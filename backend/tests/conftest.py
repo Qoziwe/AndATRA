@@ -10,11 +10,7 @@ from app.data.seed import seed_all
 @pytest.fixture(scope="session")
 def app():
     """Create Flask app with test config and in-memory SQLite DB."""
-    # Override engine options for SQLite in-memory with threading support
-    class _TestConfig(TestConfig):
-        SQLALCHEMY_ENGINE_OPTIONS = {"connect_args": {"check_same_thread": False}}
-
-    app = create_app(_TestConfig)
+    app = create_app(TestConfig)
 
     with app.app_context():
         _db.create_all()

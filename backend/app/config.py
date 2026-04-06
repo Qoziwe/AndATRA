@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from app.database import DEFAULT_DATABASE_URL, build_engine_options, normalize_database_url
 
 _env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(_env_path)
@@ -13,7 +14,10 @@ class Config:
     """Base configuration."""
 
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///andatra.db")
+    SQLALCHEMY_DATABASE_URI = normalize_database_url(
+        os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+    )
+    SQLALCHEMY_ENGINE_OPTIONS = build_engine_options(SQLALCHEMY_DATABASE_URI)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     APP_HOST = os.getenv("APP_HOST", "0.0.0.0")
     APP_PORT = int(os.getenv("APP_PORT", "5000"))
@@ -71,10 +75,13 @@ class Config:
 
 
 class TestConfig(Config):
-    """Test configuration with in-memory SQLite."""
+    """Test configuration with an isolated in-memory SQLite database."""
 
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI = normalize_database_url(
+        os.getenv("TEST_DATABASE_URL", "sqlite+pysqlite:///:memory:")
+    )
+    SQLALCHEMY_ENGINE_OPTIONS = build_engine_options(SQLALCHEMY_DATABASE_URI)
     LLM_MOCK_MODE = True
     LLM_VISION_ENABLED = True
     TELEGRAM_BOT_SECRET = "test_secret"

@@ -1,24 +1,22 @@
 """Flask application factory."""
 
 from flask import Flask
-from sqlalchemy import inspect, text
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import Config
+from app.database import REQUIRED_SCHEMA_TABLES, schema_has_required_tables
 from app.extensions import cors, db, socketio
 
 
-def _ensure_runtime_schema_compatibility(app: Flask) -> None:
-    """Apply additive schema fixes needed by the current app version."""
-    inspector = inspect(db.engine)
-    tables = set(inspector.get_table_names())
-    if "appeals" not in tables:
-        return
+def _verify_database_connection() -> None:
+    """Fail fast when the configured database is unreachable."""
+    db.session.execute(text("SELECT 1"))
 
-    appeal_columns = {column["name"] for column in inspector.get_columns("appeals")}
-    if "location_text" not in appeal_columns:
-        db.session.execute(text("ALTER TABLE appeals ADD COLUMN location_text TEXT"))
-        db.session.commit()
-        app.logger.info("Added missing appeals.location_text column")
+
+def _schema_is_ready() -> bool:
+    """Return whether Alembic migrations have already created the app schema."""
+    return schema_has_required_tables(db.engine, REQUIRED_SCHEMA_TABLES)
 
 
 def _ensure_reference_data(app: Flask) -> None:
@@ -26,21 +24,31 @@ def _ensure_reference_data(app: Flask) -> None:
     if not app.config.get("AUTO_SEED_REFERENCE_DATA", True):
         return
 
+    if not _schema_is_ready():
+        app.logger.warning(
+            "Database schema is not initialized. Run `alembic upgrade head` before starting the backend."
+        )
+        return
+
     from app.data.seed import CATEGORIES, DISTRICTS
     from app.models.category import Category
     from app.models.district import District
 
+    pending_writes = False
     if Category.query.count() == 0:
         for category_data in CATEGORIES:
             db.session.add(Category(**category_data))
         app.logger.info("Seeded %d categories automatically", len(CATEGORIES))
+        pending_writes = True
 
     if District.query.count() == 0:
         for district_data in DISTRICTS:
             db.session.add(District(**district_data))
         app.logger.info("Seeded %d districts automatically", len(DISTRICTS))
+        pending_writes = True
 
-    db.session.commit()
+    if pending_writes:
+        db.session.commit()
 
 
 def create_app(config_class=Config):
@@ -75,8 +83,12 @@ def create_app(config_class=Config):
     with app.app_context():
         from app.models import appeal, category, chat_log, district  # noqa: F401
 
-        db.create_all()
-        _ensure_runtime_schema_compatibility(app)
+        try:
+            _verify_database_connection()
+        except SQLAlchemyError as exc:
+            raise RuntimeError(
+                "Database connection failed. Check DATABASE_URL and PostgreSQL availability."
+            ) from exc
         _ensure_reference_data(app)
 
     return app
