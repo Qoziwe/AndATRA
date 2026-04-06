@@ -4,9 +4,9 @@ services:
     env: python
     region: frankfurt # or your preferred region
     plan: free # or starter
-    rootDir: telegram
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python -m bot.main"
+    rootDir: .
+    buildCommand: "cd telegram && pip install -r requirements.txt"
+    startCommand: "cd telegram && python -m bot.main"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0 # Or whichever recent version you are using
