@@ -2,7 +2,11 @@
 
 from flask import Blueprint, request
 from app.utils.response import success_response, error_response
-from app.utils.validators import require_bot_secret, validate_required_fields
+from app.utils.validators import (
+    require_admin_api_token,
+    require_bot_secret,
+    validate_required_fields,
+)
 from app.services import appeal_service
 
 appeals_bp = Blueprint("appeals", __name__)
@@ -86,6 +90,7 @@ def get_appeal(appeal_id):
 
 
 @appeals_bp.route("/appeals/<int:appeal_id>/status", methods=["PATCH"])
+@require_admin_api_token
 def update_appeal_status(appeal_id):
     """Update an appeal status manually."""
     data = request.get_json(silent=True) or {}

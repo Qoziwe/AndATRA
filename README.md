@@ -146,6 +146,7 @@ Copy-Item frontend\.env.example frontend\.env
 `backend/.env`
 
 ```env
+APP_ENV=development
 FLASK_SECRET_KEY=change_this_secret
 DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/andatra
 APP_HOST=0.0.0.0
@@ -154,6 +155,12 @@ FLASK_DEBUG=false
 AUTO_SEED_REFERENCE_DATA=true
 CORS_ORIGINS=http://localhost:3000,http://localhost:8081,http://localhost:19006
 SOCKETIO_ASYNC_MODE=threading
+ENFORCE_API_AUTH=false
+TELEGRAM_BOT_SECRET=shared_secret_token_here
+AUTH_USERNAME=operator
+AUTH_PASSWORD=change_this_password
+AUTH_DISPLAY_NAME=Оператор AndATRA
+AUTH_TOKEN_MAX_AGE_HOURS=24
 
 LLM_PRIMARY_URL=http://localhost:11434
 LLM_CLASSIFY_URL=http://localhost:11434
@@ -164,7 +171,6 @@ LLM_VISION_MODEL=llava
 ENABLE_LLM=false
 
 GEOCODING_ENABLED=true
-TELEGRAM_BOT_SECRET=shared_secret_token_here
 ```
 
 `telegram/.env`
@@ -210,6 +216,7 @@ Health check:
 
 ```powershell
 curl http://localhost:5000/api/health
+curl http://localhost:5000/api/ready
 ```
 
 ### 6. Start the frontend
@@ -256,6 +263,9 @@ python -m bot.main
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/health` | Health check |
+| `GET` | `/api/ready` | Readiness check for Render |
+| `POST` | `/api/auth/login` | Single-account login |
+| `GET` | `/api/auth/me` | Current operator identity |
 | `POST` | `/api/appeals/intake` | Intake from Telegram |
 | `GET` | `/api/appeals` | Appeal list with filters and pagination |
 | `GET` | `/api/appeals/<id>` | Appeal detail |
@@ -269,6 +279,12 @@ python -m bot.main
 | `POST` | `/api/chat` | Operator AI chat |
 | `GET` | `/api/traffic/analyze` | Traffic recommendations |
 | `POST` | `/api/traffic/chat` | Traffic-specific AI chat |
+
+### Production auth
+
+- set one operator account with `AUTH_USERNAME` and `AUTH_PASSWORD`
+- login via `POST /api/auth/login`, then use `Authorization: Bearer <access_token>` for protected dashboard endpoints
+- `/api/chat`, `/api/traffic/chat`, `PATCH /api/appeals/<id>/status`, `/api/auth/me` and `/ws/updates` require the signed access token when `ENFORCE_API_AUTH=true`
 
 ## AI Runtime Modes
 

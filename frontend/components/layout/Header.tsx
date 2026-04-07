@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { router, usePathname } from "expo-router";
+
 import { FadeInView } from "@/components/common/FadeInView";
 import { AppIcon } from "@/components/icons/AppIcon";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useAuthStore } from "@/stores/authStore";
 import { useFeedbackStore } from "@/stores/feedbackStore";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -39,6 +41,14 @@ const titles: Record<string, { title: string; subtitle: string }> = {
   "/profile": {
     title: "Мой профиль",
     subtitle: "Личные настройки, статус системы и быстрые переходы"
+  },
+  "/traffic-ai": {
+    title: "ИИ-пробки",
+    subtitle: "Мониторинг трафика, рекомендации и диалог по дорожной обстановке"
+  },
+  "/air-quality": {
+    title: "Карта воздуха",
+    subtitle: "Сводка качества воздуха и экологической обстановки"
   }
 };
 
@@ -55,6 +65,8 @@ export const Header = () => {
   const profileMenuOpen = useUiStore((state) => state.profileMenuOpen);
   const toggleProfileMenu = useUiStore((state) => state.toggleProfileMenu);
   const closeProfileMenu = useUiStore((state) => state.closeProfileMenu);
+  const authUser = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   const pushToast = useFeedbackStore((state) => state.pushToast);
   const { colors, isDark } = useAppTheme();
 
@@ -85,6 +97,18 @@ export const Header = () => {
       : realtimeStatus === "reconnecting"
         ? "rgba(245, 158, 11, 0.14)"
         : "rgba(239, 68, 68, 0.12)";
+
+  const initials = (authUser?.display_name?.trim()?.[0] ?? authUser?.username?.trim()?.[0] ?? "A").toUpperCase();
+
+  const handleLogout = () => {
+    logout();
+    closeProfileMenu();
+    pushToast({
+      title: "Сессия завершена",
+      description: "Для продолжения работы выполните вход снова."
+    });
+    router.replace("/auth/login" as never);
+  };
 
   return (
     <FadeInView>
@@ -165,15 +189,15 @@ export const Header = () => {
                   style={{ backgroundColor: colors.primarySoft }}
                 >
                   <Text className="text-sm font-bold" style={{ color: colors.primary }}>
-                    АА
+                    {initials}
                   </Text>
                 </View>
                 <View>
                   <Text className="text-sm font-semibold" style={{ color: colors.text }}>
-                    Аналитик
+                    {authUser?.display_name ?? "Оператор"}
                   </Text>
                   <Text className="text-xs" style={{ color: colors.muted }}>
-                    Акимат
+                    {authUser?.username ?? "andatra"}
                   </Text>
                 </View>
                 <AppIcon name="chevronDown" size={18} color={colors.muted} />
@@ -213,6 +237,11 @@ export const Header = () => {
                   >
                     <Text className="text-sm" style={{ color: colors.text }}>
                       {isDark ? "Включить светлую тему" : "Включить темную тему"}
+                    </Text>
+                  </Pressable>
+                  <Pressable onPress={handleLogout} className="rounded-2xl px-4 py-3">
+                    <Text className="text-sm" style={{ color: colors.text }}>
+                      Выйти
                     </Text>
                   </Pressable>
                 </View>

@@ -1,14 +1,16 @@
 import "@/global.css";
 import { useEffect } from "react";
-import { Slot } from "expo-router";
+import { Slot, router, usePathname, useRootNavigationState } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Platform, Text, TextInput } from "react-native";
+import { ActivityIndicator, Platform, Text, TextInput, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useRealtime } from "@/hooks/useRealtime";
+import { loadAuthSession, subscribeToAuthSession } from "@/services/authSession";
+import { useAuthStore } from "@/stores/authStore";
 import { useUiStore } from "@/stores/uiStore";
 
 const queryClient = new QueryClient();
@@ -54,15 +56,75 @@ const ThemeBridge = () => {
 };
 
 export default function RootLayout() {
+  const pathname = usePathname();
+  const rootNavigationState = useRootNavigationState();
+  const hydrateAuth = useAuthStore((state) => state.hydrate);
+  const hydrated = useAuthStore((state) => state.hydrated);
+  const restoreSession = useAuthStore((state) => state.restoreSession);
+  const token = useAuthStore((state) => state.token);
+  const { colors } = useAppTheme();
+
+  useEffect(() => {
+    void hydrateAuth();
+  }, [hydrateAuth]);
+
+  useEffect(() => {
+    return subscribeToAuthSession(() => {
+      restoreSession(loadAuthSession());
+    });
+  }, [restoreSession]);
+
+  useEffect(() => {
+    if (!rootNavigationState?.key || !hydrated) {
+      return;
+    }
+
+    const isAuthRoute = pathname.startsWith("/auth");
+    if (!token && !isAuthRoute) {
+      router.replace("/auth/login" as never);
+      return;
+    }
+
+    if (token && isAuthRoute) {
+      router.replace("/" as never);
+    }
+  }, [hydrated, pathname, rootNavigationState?.key, token]);
+
+  const isAuthRoute = pathname.startsWith("/auth");
+  const isRedirecting =
+    hydrated && Boolean(rootNavigationState?.key) && ((!token && !isAuthRoute) || (token && isAuthRoute));
+  const shouldMaskContent = !hydrated || isRedirecting;
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <RealtimeBridge />
           <ThemeBridge />
-          <AppShell>
+          {isAuthRoute ? (
             <Slot />
-          </AppShell>
+          ) : (
+            <AppShell>
+              <Slot />
+            </AppShell>
+          )}
+          {shouldMaskContent ? (
+            <View
+              pointerEvents="auto"
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: colors.background
+              }}
+            >
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : null}
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -1,14 +1,22 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getRealtimeClient } from "@/services/realtime";
+import { useAuthStore } from "@/stores/authStore";
 import { useUiStore } from "@/stores/uiStore";
 
 export const useRealtime = () => {
   const queryClient = useQueryClient();
   const setRealtimeStatus = useUiStore((state) => state.setRealtimeStatus);
+  const token = useAuthStore((state) => state.token);
+  const hydrated = useAuthStore((state) => state.hydrated);
 
   useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
     const socket = getRealtimeClient();
+    socket.auth = token ? { token } : {};
 
     socket.on("connect", () => setRealtimeStatus("live"));
     socket.on("disconnect", () => setRealtimeStatus("offline"));
@@ -27,7 +35,12 @@ export const useRealtime = () => {
       queryClient.invalidateQueries({ queryKey: ["analytics-trends"] });
     });
 
-    socket.connect();
+    if (token) {
+      socket.connect();
+    } else {
+      setRealtimeStatus("offline");
+      socket.disconnect();
+    }
 
     return () => {
       socket.off("connect");
@@ -37,5 +50,5 @@ export const useRealtime = () => {
       socket.off("appeal_updated");
       socket.disconnect();
     };
-  }, [queryClient, setRealtimeStatus]);
+  }, [hydrated, queryClient, setRealtimeStatus, token]);
 };

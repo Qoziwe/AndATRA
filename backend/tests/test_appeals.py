@@ -309,6 +309,21 @@ class TestAppealDetail:
 class TestAppealStatusUpdate:
     """Tests for PATCH /api/appeals/<id>/status."""
 
+    def test_update_appeal_status_requires_admin_token_when_auth_is_enforced(self, client, app):
+        """PATCH should be rejected without an admin token when production auth is enabled."""
+        with app.app_context():
+            app.config["ENFORCE_API_AUTH"] = True
+
+        try:
+            resp = client.patch("/api/appeals/1/status", json={"status": "resolved"})
+            assert resp.status_code == 401
+            data = resp.get_json()
+            assert data["success"] is False
+            assert "access token" in data["error"].lower()
+        finally:
+            with app.app_context():
+                app.config["ENFORCE_API_AUTH"] = False
+
     def test_update_appeal_status(self, client):
         """PATCH updates an appeal status and returns the updated entity."""
         resp = client.patch("/api/appeals/1/status", json={"status": "irrelevant"})

@@ -3,10 +3,18 @@
 from flask import Flask
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.config import Config
-from app.database import REQUIRED_SCHEMA_TABLES, schema_has_required_tables
+from app.database import DEFAULT_DATABASE_URL, REQUIRED_SCHEMA_TABLES, schema_has_required_tables
 from app.extensions import cors, db, socketio
+
+
+_PRODUCTION_PLACEHOLDERS = {
+    "dev-secret-key",
+    "change_this_secret",
+    "shared_secret_token_here",
+}
 
 
 def _verify_database_connection() -> None:
@@ -17,6 +25,31 @@ def _verify_database_connection() -> None:
 def _schema_is_ready() -> bool:
     """Return whether Alembic migrations have already created the app schema."""
     return schema_has_required_tables(db.engine, REQUIRED_SCHEMA_TABLES)
+
+
+def _validate_runtime_config(app: Flask) -> None:
+    """Block production startup when critical config is missing or unsafe."""
+    if not app.config.get("IS_PRODUCTION", False):
+        return
+
+    required_values = {
+        "FLASK_SECRET_KEY": app.config.get("SECRET_KEY", ""),
+        "TELEGRAM_BOT_SECRET": app.config.get("TELEGRAM_BOT_SECRET", ""),
+        "AUTH_USERNAME": app.config.get("AUTH_USERNAME", ""),
+        "AUTH_PASSWORD": app.config.get("AUTH_PASSWORD", ""),
+    }
+    for name, value in required_values.items():
+        normalized = str(value).strip()
+        if not normalized or normalized in _PRODUCTION_PLACEHOLDERS:
+            raise RuntimeError(
+                f"{name} must be set to a non-placeholder value before starting production."
+            )
+
+    if app.config.get("SQLALCHEMY_DATABASE_URI") == DEFAULT_DATABASE_URL:
+        raise RuntimeError("DATABASE_URL must point to the Render Postgres instance in production.")
+
+    if not app.config.get("CORS_ORIGINS"):
+        raise RuntimeError("CORS_ORIGINS must include at least one allowed frontend origin.")
 
 
 def _ensure_reference_data(app: Flask) -> None:
@@ -55,12 +88,20 @@ def create_app(config_class=Config):
     """Create and configure the Flask application."""
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+
+    _validate_runtime_config(app)
 
     db.init_app(app)
     cors.init_app(app, origins=app.config["CORS_ORIGINS"])
-    socketio.init_app(app, async_mode=app.config["SOCKETIO_ASYNC_MODE"])
+    socketio.init_app(
+        app,
+        async_mode=app.config["SOCKETIO_ASYNC_MODE"],
+        cors_allowed_origins=app.config["CORS_ORIGINS"],
+    )
 
     from app.api.analytics import analytics_bp
+    from app.api.auth import auth_bp
     from app.api.appeals import appeals_bp
     from app.api.categories import categories_bp
     from app.api.chat import chat_bp
@@ -69,6 +110,7 @@ def create_app(config_class=Config):
     from app.api.traffic import traffic_bp
 
     app.register_blueprint(health_bp, url_prefix="/api")
+    app.register_blueprint(auth_bp, url_prefix="/api")
     app.register_blueprint(appeals_bp, url_prefix="/api")
     app.register_blueprint(analytics_bp, url_prefix="/api")
     app.register_blueprint(chat_bp, url_prefix="/api")

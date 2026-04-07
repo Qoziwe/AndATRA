@@ -13,6 +13,8 @@ load_dotenv(_env_path)
 class Config:
     """Base configuration."""
 
+    APP_ENV = (os.getenv("APP_ENV") or os.getenv("FLASK_ENV", "development")).strip().lower()
+    IS_PRODUCTION = APP_ENV == "production"
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
     SQLALCHEMY_DATABASE_URI = normalize_database_url(
         os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
@@ -20,7 +22,7 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = build_engine_options(SQLALCHEMY_DATABASE_URI)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     APP_HOST = os.getenv("APP_HOST", "0.0.0.0")
-    APP_PORT = int(os.getenv("APP_PORT", "5000"))
+    APP_PORT = int(os.getenv("PORT") or os.getenv("APP_PORT", "5000"))
     FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() == "true"
     AUTO_SEED_REFERENCE_DATA = os.getenv("AUTO_SEED_REFERENCE_DATA", "true").lower() == "true"
 
@@ -39,7 +41,10 @@ class Config:
         for origin in os.getenv("CORS_ORIGINS", _default_cors_origins).split(",")
         if origin.strip()
     ]
-    SOCKETIO_ASYNC_MODE = os.getenv("SOCKETIO_ASYNC_MODE", "threading")
+    SOCKETIO_ASYNC_MODE = os.getenv(
+        "SOCKETIO_ASYNC_MODE",
+        "eventlet" if IS_PRODUCTION else "threading",
+    )
 
     # LLM Ollama endpoints
     LLM_PRIMARY_URL = os.getenv("LLM_PRIMARY_URL", "http://localhost:11434")
@@ -69,6 +74,14 @@ class Config:
 
     # Telegram bot shared secret
     TELEGRAM_BOT_SECRET = os.getenv("TELEGRAM_BOT_SECRET", "shared_secret_token_here")
+    AUTH_USERNAME = os.getenv("AUTH_USERNAME", "")
+    AUTH_PASSWORD = os.getenv("AUTH_PASSWORD", "")
+    AUTH_DISPLAY_NAME = os.getenv("AUTH_DISPLAY_NAME", "Оператор AndATRA")
+    AUTH_TOKEN_MAX_AGE_HOURS = int(os.getenv("AUTH_TOKEN_MAX_AGE_HOURS", "24"))
+    ENFORCE_API_AUTH = os.getenv(
+        "ENFORCE_API_AUTH",
+        "true" if IS_PRODUCTION else "false",
+    ).lower() == "true"
 
 
 class TestConfig(Config):
@@ -79,5 +92,12 @@ class TestConfig(Config):
         os.getenv("TEST_DATABASE_URL", "sqlite+pysqlite:///:memory:")
     )
     SQLALCHEMY_ENGINE_OPTIONS = build_engine_options(SQLALCHEMY_DATABASE_URI)
+    APP_ENV = "test"
+    IS_PRODUCTION = False
     ENABLE_LLM = False
+    ENFORCE_API_AUTH = False
     TELEGRAM_BOT_SECRET = "test_secret"
+    AUTH_USERNAME = "test_operator"
+    AUTH_PASSWORD = "test_password"
+    AUTH_DISPLAY_NAME = "Test Operator"
+    AUTH_TOKEN_MAX_AGE_HOURS = 24

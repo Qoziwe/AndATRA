@@ -1,15 +1,20 @@
 import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
+
 import { FadeInView } from "@/components/common/FadeInView";
 import { PageHeader } from "@/components/common/PageHeader";
 import { AppIcon } from "@/components/icons/AppIcon";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useAuthStore } from "@/stores/authStore";
 import { useUiStore } from "@/stores/uiStore";
 
 export default function ProfilePage() {
   const { colors, isDark } = useAppTheme();
   const realtimeStatus = useUiStore((state) => state.realtimeStatus);
   const toggleTheme = useUiStore((state) => state.toggleTheme);
+  const authUser = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const initials = (authUser?.display_name?.trim()?.[0] ?? authUser?.username?.trim()?.[0] ?? "A").toUpperCase();
 
   return (
     <View>
@@ -30,15 +35,15 @@ export default function ProfilePage() {
                 style={{ backgroundColor: colors.primarySoft }}
               >
                 <Text className="text-xl font-bold" style={{ color: colors.primary }}>
-                  АА
+                  {initials}
                 </Text>
               </View>
               <View>
                 <Text className="text-2xl font-semibold" style={{ color: colors.text }}>
-                  Аналитик Акимата
+                  {authUser?.display_name ?? "Оператор AndATRA"}
                 </Text>
                 <Text className="mt-1 text-sm" style={{ color: colors.muted }}>
-                  Оперативный мониторинг и городская аналитика
+                  {authUser?.username ?? "andatra"}
                 </Text>
               </View>
             </View>
@@ -53,6 +58,17 @@ export default function ProfilePage() {
                 </Text>
                 <Text className="mt-2 text-base font-semibold" style={{ color: colors.text }}>
                   {isDark ? "Темная" : "Светлая"} по умолчанию
+                </Text>
+              </View>
+              <View
+                className="rounded-[22px] border px-4 py-4"
+                style={{ backgroundColor: colors.card, borderColor: colors.border }}
+              >
+                <Text className="text-xs uppercase tracking-[2px]" style={{ color: colors.muted }}>
+                  Роль
+                </Text>
+                <Text className="mt-2 text-base font-semibold" style={{ color: colors.text }}>
+                  {authUser?.role === "operator" ? "Оператор" : "Пользователь"}
                 </Text>
               </View>
               <View
@@ -121,6 +137,23 @@ export default function ProfilePage() {
                   <AppIcon name="reports" color={colors.primary} />
                   <Text className="text-sm font-semibold" style={{ color: colors.text }}>
                     Перейти к отчетам
+                  </Text>
+                </View>
+                <AppIcon name="chevronRight" color={colors.muted} />
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  logout();
+                  router.replace("/auth/login" as never);
+                }}
+                className="flex-row items-center justify-between rounded-[22px] border px-4 py-4"
+                style={{ backgroundColor: colors.card, borderColor: colors.border }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <AppIcon name="close" color={colors.primary} />
+                  <Text className="text-sm font-semibold" style={{ color: colors.text }}>
+                    Выйти из аккаунта
                   </Text>
                 </View>
                 <AppIcon name="chevronRight" color={colors.muted} />

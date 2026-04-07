@@ -1,5 +1,6 @@
-import axios, { type AxiosResponse } from "axios";
+import axios, { AxiosHeaders, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 import { BACKEND_URL } from "@/constants/config";
+import { clearAuthSession, getAccessToken } from "@/services/authSession";
 
 interface ApiEnvelope<T> {
   success: boolean;
@@ -15,6 +16,25 @@ export const api = axios.create({
   }
 });
 
+const setAuthorizationHeader = (config: InternalAxiosRequestConfig, token: string) => {
+  if (!token) {
+    return;
+  }
+
+  const headers = AxiosHeaders.from(config.headers);
+  headers.set("Authorization", `Bearer ${token}`);
+  config.headers = headers;
+};
+
+api.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) {
+    setAuthorizationHeader(config, token);
+  }
+
+  return config;
+});
+
 export const unwrapApiResponse = <T>(response: AxiosResponse<ApiEnvelope<T>>): T => {
   if (!response.data.success) {
     throw new Error(response.data.error ?? "Не удалось получить ответ от сервера.");
@@ -26,6 +46,9 @@ export const unwrapApiResponse = <T>(response: AxiosResponse<ApiEnvelope<T>>): T
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error?.response?.status === 401) {
+      clearAuthSession();
+    }
     return Promise.reject(
       new Error(
         error?.response?.data?.error ??

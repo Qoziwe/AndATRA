@@ -33,6 +33,28 @@ class TestSocketIO:
         """Client connects successfully to /ws/updates."""
         assert socketio_client.is_connected(namespace="/ws/updates")
 
+    def test_socketio_requires_token_when_auth_is_enforced(self, socketio_app):
+        """Socket.IO connection should be refused when production auth is enabled."""
+        socketio_app.config["ENFORCE_API_AUTH"] = True
+
+        try:
+            with socketio_app.app_context():
+                from app.services import auth_service
+
+                token = auth_service.issue_access_token()
+
+            unauthorized_client = socketio.test_client(socketio_app, namespace="/ws/updates")
+            assert not unauthorized_client.is_connected(namespace="/ws/updates")
+
+            authorized_client = socketio.test_client(
+                socketio_app,
+                namespace="/ws/updates",
+                auth={"token": token},
+            )
+            assert authorized_client.is_connected(namespace="/ws/updates")
+        finally:
+            socketio_app.config["ENFORCE_API_AUTH"] = False
+
     def test_new_appeal_event_emitted(self, socketio_app, socketio_client):
         """After POST /api/appeals/intake, socket emits 'new_appeal' event."""
         http_client = socketio_app.test_client()

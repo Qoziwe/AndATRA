@@ -8,6 +8,21 @@ import requests
 class TestChatEndpoint:
     """Tests for POST /api/chat."""
 
+    def test_chat_requires_staff_token_when_auth_is_enforced(self, client, app):
+        """POST /api/chat returns 401 when production auth is enabled and no token is provided."""
+        with app.app_context():
+            app.config["ENFORCE_API_AUTH"] = True
+
+        try:
+            resp = client.post("/api/chat", json={"message": "Привет"})
+            assert resp.status_code == 401
+            data = resp.get_json()
+            assert data["success"] is False
+            assert "access token" in data["error"].lower()
+        finally:
+            with app.app_context():
+                app.config["ENFORCE_API_AUTH"] = False
+
     @patch("app.services.chat_service.llm_service.call_primary")
     def test_chat_returns_response(self, mock_primary, client, app):
         """POST /api/chat with a message returns 200 with assistant response."""

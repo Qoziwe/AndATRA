@@ -2,6 +2,7 @@
 
 from flask import Blueprint, request
 from app.utils.response import success_response, error_response
+from app.utils.validators import require_staff_api_token
 from app.services import traffic_service
 
 traffic_bp = Blueprint("traffic", __name__)
@@ -21,6 +22,7 @@ def analyze_traffic():
 
 
 @traffic_bp.route("/traffic/chat", methods=["POST"])
+@require_staff_api_token
 def traffic_chat():
     """Traffic-specific AI chat with traffic context.
 
