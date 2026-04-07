@@ -13,8 +13,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    preDeployCommand: alembic upgrade head && python -m app.data.seed --on-deploy
-    startCommand: gunicorn --worker-class eventlet --workers 1 --bind 0.0.0.0:$PORT run:app
+    startCommand: python scripts/render_start.py
     healthCheckPath: /api/ready
     envVars:
       - key: PYTHON_VERSION
