@@ -15,7 +15,9 @@ services:
       - key: FLASK_DEBUG
         value: "false"
       - key: SOCKETIO_ASYNC_MODE
-        value: eventlet
+        value: threading
+      - key: GUNICORN_THREADS
+        value: "8"
       - key: ENFORCE_API_AUTH
         value: "true"
       - key: AUTO_SEED_REFERENCE_DATA

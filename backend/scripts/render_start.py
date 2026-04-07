@@ -65,14 +65,17 @@ def main() -> None:
         sys.executable,
         "-m",
         "gunicorn",
-        "--worker-class",
-        os.getenv("GUNICORN_WORKER_CLASS", "eventlet"),
         "--workers",
         os.getenv("GUNICORN_WORKERS", "1"),
+        "--threads",
+        os.getenv("GUNICORN_THREADS", "8"),
         "--bind",
         f"0.0.0.0:{os.getenv('PORT', '5000')}",
         "run:app",
     ]
+    worker_class = os.getenv("GUNICORN_WORKER_CLASS", "").strip()
+    if worker_class:
+        gunicorn_args[4:4] = ["--worker-class", worker_class]
     print("Starting Gunicorn...", flush=True)
     os.execvpe(sys.executable, gunicorn_args, os.environ)
 
