@@ -7,9 +7,14 @@ const env =
 
 export const APP_NAME = env.EXPO_PUBLIC_APP_NAME ?? "AndATRA";
 export const BACKEND_URL = env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+export const TELEGRAM_BOT_URL = env.EXPO_PUBLIC_TELEGRAM_BOT_URL ?? "";
 export const TOMTOM_TRAFFIC_API_KEY = env.EXPO_PUBLIC_TOMTOM_API_KEY ?? "";
 export const AIR_QUALITY_API_URL =
   env.EXPO_PUBLIC_AIR_QUALITY_API_URL ?? "https://air-quality-api.open-meteo.com/v1/air-quality";
+export const ENABLE_RENDER_KEEPALIVE = (env.EXPO_PUBLIC_ENABLE_RENDER_KEEPALIVE ?? "false") === "true";
+export const RENDER_KEEPALIVE_INTERVAL_MS = Number(
+  env.EXPO_PUBLIC_RENDER_KEEPALIVE_INTERVAL_MS ?? "480000"
+);
 
 export const getTomTomTrafficTileUrl = (style: "relative0" | "relative0-dark" = "relative0") =>
   TOMTOM_TRAFFIC_API_KEY

@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ActivityIndicator, Platform, Text, TextInput, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { AppShell } from "@/components/layout/AppShell";
+import { useRenderKeepAlive } from "@/hooks/useRenderKeepAlive";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useRealtime } from "@/hooks/useRealtime";
 import { loadAuthSession, subscribeToAuthSession } from "@/services/authSession";
@@ -17,6 +18,11 @@ const queryClient = new QueryClient();
 
 const RealtimeBridge = () => {
   useRealtime();
+  return null;
+};
+
+const KeepAliveBridge = () => {
+  useRenderKeepAlive();
   return null;
 };
 
@@ -100,6 +106,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <RealtimeBridge />
+          <KeepAliveBridge />
           <ThemeBridge />
           {isAuthRoute ? (
             <Slot />
