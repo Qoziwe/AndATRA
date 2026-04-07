@@ -3,6 +3,7 @@
 Usage: python -m app.data.seed
 """
 
+import argparse
 import os
 import sys
 
@@ -37,6 +38,14 @@ DISTRICTS = [
     {"name": "РўСѓСЂРєСЃРёР±СЃРєРёР№ СЂР°Р№РѕРЅ", "slug": "turksibskiy", "city": "РђР»РјР°С‚С‹", "coordinates_center": {"lat": 43.3100, "lng": 76.9500}},
     {"name": "РђР»Р°С‚Р°СѓСЃРєРёР№ СЂР°Р№РѕРЅ", "slug": "alatauskiy", "city": "РђР»РјР°С‚С‹", "coordinates_center": {"lat": 43.2100, "lng": 76.8100}},
 ]
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    """Parse a boolean-like environment variable."""
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def seed_categories():
@@ -91,6 +100,18 @@ def seed_all():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Seed AndATRA database data.")
+    parser.add_argument(
+        "--on-deploy",
+        action="store_true",
+        help="Only seed mock data when SEED_MOCK_DATA_ON_DEPLOY=true.",
+    )
+    args = parser.parse_args()
+
+    if args.on_deploy and not _env_flag("SEED_MOCK_DATA_ON_DEPLOY", default=False):
+        print("Skipping mock data seeding because SEED_MOCK_DATA_ON_DEPLOY is disabled.")
+        raise SystemExit(0)
+
     app = create_app()
     with app.app_context():
         seed_all()
