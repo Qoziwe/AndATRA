@@ -5,9 +5,25 @@ const env =
     };
   }).process?.env ?? {};
 
+const runtimeLocation =
+  typeof globalThis !== "undefined" &&
+  "location" in globalThis &&
+  globalThis.location &&
+  typeof globalThis.location === "object"
+    ? globalThis.location
+    : undefined;
+
+const hostname = runtimeLocation?.hostname ?? "";
+const isGitHubPagesHost = hostname.endsWith(".github.io");
+
+const defaultBackendUrl = isGitHubPagesHost
+  ? "https://andatra-backend.onrender.com"
+  : "http://localhost:5000";
+const defaultTelegramBotUrl = isGitHubPagesHost ? "https://andatra-telegram-bot.onrender.com" : "";
+
 export const APP_NAME = env.EXPO_PUBLIC_APP_NAME ?? "AndATRA";
-export const BACKEND_URL = env.EXPO_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
-export const TELEGRAM_BOT_URL = env.EXPO_PUBLIC_TELEGRAM_BOT_URL ?? "";
+export const BACKEND_URL = env.EXPO_PUBLIC_BACKEND_URL ?? defaultBackendUrl;
+export const TELEGRAM_BOT_URL = env.EXPO_PUBLIC_TELEGRAM_BOT_URL ?? defaultTelegramBotUrl;
 export const TOMTOM_TRAFFIC_API_KEY = env.EXPO_PUBLIC_TOMTOM_API_KEY ?? "";
 export const AIR_QUALITY_API_URL =
   env.EXPO_PUBLIC_AIR_QUALITY_API_URL ?? "https://air-quality-api.open-meteo.com/v1/air-quality";
