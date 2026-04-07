@@ -174,3 +174,5 @@ telegram/.coverage.*
 !backend/.env.example
 !telegram/.env.example
 !frontend/.env.example
+!requirements.txt
+!backend/requirements.txt
